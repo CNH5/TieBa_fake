@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/white"
+        tools:context=".activity.TieActivity">
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipe"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent">
+
+            <com.google.android.material.appbar.AppBarLayout
+                    android:id="@+id/top_bar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                <androidx.appcompat.widget.Toolbar
+                        android:id="@+id/toolbar1"
+                        android:layout_width="match_parent"
+                        android:layout_height="?attr/actionBarSize"
+                        android:background="@color/white"
+                        android:theme="@style/Widget.AppCompat.Light.ActionBar">
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+                        <ImageView
+                                android:id="@+id/back"
+                                android:layout_width="25dp"
+                                android:layout_height="25dp"
+                                android:src="@mipmap/back"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                tools:ignore="ContentDescription,MissingConstraints" />
+
+                        <ImageView
+                                android:id="@+id/share"
+                                android:layout_width="25dp"
+                                android:layout_height="25dp"
+                                android:src="@mipmap/share"
+                                app:layout_constraintTop_toTopOf="@+id/back"
+                                app:layout_constraintEnd_toStartOf="@+id/more"
+                                android:layout_marginEnd="25dp"
+                                tools:ignore="ContentDescription,MissingConstraints" />
+
+                        <ImageView
+                                android:id="@+id/more"
+                                android:layout_width="27dp"
+                                android:layout_height="27dp"
+                                android:src="@mipmap/more"
+                                app:layout_constraintTop_toTopOf="@+id/back"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                tools:ignore="ContentDescription,MissingConstraints" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </androidx.appcompat.widget.Toolbar>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#EFEFEF" />
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/tab_view2"
+                        android:visibility="gone"
+                        android:background="@color/white"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                    <com.google.android.material.tabs.TabLayout
+                            android:id="@+id/tab2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="35dp"
+                            android:fillViewport="false"
+                            app:tabMode="fixed"
+                            android:layout_marginStart="5dp"
+                            app:tabIndicatorFullWidth="false"
+                            app:tabSelectedTextColor="@color/black"
+                            app:tabIndicatorColor="@color/black"
+                            app:tabTextColor="#1B1A1A"
+                            app:layout_constraintStart_toStartOf="parent"
+                            tools:ignore="MissingConstraints,RtlSymmetry" />
+
+                    <!-- 切换楼层的排序方式 -->
+
+                    <TextView
+                            android:id="@+id/floor_sort2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            android:layout_marginEnd="15dp"
+                            android:text="正序 ∨"
+                            android:textColor="#404040"
+                            tools:ignore="HardcodedText" />
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            android:background="#EFEFEF">
+                        <!-- 不知道为什么，直接用view会报错 -->
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.appbar.AppBarLayout>
+
+            <androidx.core.widget.NestedScrollView
+                    android:id="@+id/scrollView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="1dp"
+                        android:background="@color/white"
+                        android:orientation="vertical">
+
+                    <TextView
+                            android:id="@+id/tie_title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginStart="15dp"
+                            android:layout_marginEnd="15dp"
+                            android:textSize="23sp"
+                            android:textColor="@color/black" />
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                        <ImageView
+                                android:id="@+id/avatar"
+                                android:layout_width="45dp"
+                                android:layout_height="45dp"
+                                android:layout_marginStart="15dp"
+                                android:layout_marginTop="15dp"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:layout_constraintStart_toStartOf="parent"
+                                android:paddingRight="1dp"
+                                android:paddingTop="1dp"
+                                android:paddingLeft="1dp"
+                                android:paddingBottom="1dp"
+                                tools:ignore="ContentDescription,MissingConstraints" />
+
+                        <TextView
+                                android:id="@+id/name"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:layout_constraintTop_toTopOf="@+id/avatar"
+                                app:layout_constraintStart_toEndOf="@+id/avatar"
+                                android:layout_marginStart="10dp"
+                                android:textColor="@color/black"
+                                android:textSize="16sp"
+                                tools:ignore="MissingConstraints" />
+
+                        <TextView
+                                android:id="@+id/date"
+                                android:textColor="@color/secondary_characters"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:layout_constraintStart_toStartOf="@id/name"
+                                app:layout_constraintTop_toBottomOf="@id/name"
+                                android:layout_marginTop="5dp"
+                                android:textSize="13sp"
+                                tools:ignore="MissingConstraints" />
+
+                        <com.example.tieba.views.TextInImageView
+                                android:id="@+id/level_icon"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                app:layout_constraintTop_toTopOf="@id/name"
+                                app:layout_constraintStart_toEndOf="@+id/name"
+                                android:layout_marginStart="5dp" />
+
+                        <TextView
+                                android:id="@+id/subscription_bt"
+                                android:layout_width="52dp"
+                                android:layout_height="25dp"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                android:text="+ 关注"
+                                android:textSize="12sp"
+                                android:textColor="@color/white"
+                                android:gravity="center"
+                                android:background="@drawable/shape_corner5"
+                                android:layout_marginEnd="15dp"
+                                tools:ignore="HardcodedText,RtlSymmetry" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <TextView
+                            android:id="@+id/tie_info"
+                            android:textSize="15sp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="25dp"
+                            android:layout_marginStart="15dp"
+                            android:layout_marginEnd="15dp"
+                            android:textColor="@color/black" />
+
+                    <ImageView
+                            android:id="@+id/tie_image"
+                            android:visibility="gone"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:layout_marginStart="15dp"
+                            android:layout_marginEnd="15dp"
+                            tools:ignore="ContentDescription" />
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="20dp"
+                            android:layout_marginStart="15dp"
+                            android:layout_marginEnd="15dp"
+                            android:paddingBottom="15dp">
+
+                        <com.example.tieba.views.ImageTextButton1
+                                android:id="@+id/share_bt"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                tools:ignore="MissingConstraints" />
+
+                        <com.example.tieba.views.ImageTextButton1
+                                android:id="@+id/comment_bt"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:layout_constraintStart_toStartOf="@+id/share_bt"
+                                android:layout_marginStart="100dp"
+                                tools:ignore="MissingConstraints" />
+
+                        <com.example.tieba.views.ImageTextButton1
+                                android:id="@+id/good_bt"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:layout_constraintTop_toTopOf="@+id/share_bt"
+                                app:layout_constraintEnd_toEndOf="@+id/bad_bt"
+                                android:layout_marginEnd="100dp"
+                                tools:ignore="MissingConstraints" />
+
+                        <com.example.tieba.views.ImageTextButton1
+                                android:id="@+id/bad_bt"
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                app:layout_constraintTop_toTopOf="@+id/share_bt"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                android:layout_marginEnd="10dp"
+                                tools:ignore="MissingConstraints" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="5dp"
+                            android:background="#EFEFEF">
+                        <!-- 不知道为什么，直接用view会报错 -->
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                            android:id="@+id/tab_view1"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                        <com.google.android.material.tabs.TabLayout
+                                android:id="@+id/tab1"
+                                android:layout_width="wrap_content"
+                                android:layout_height="35dp"
+                                android:fillViewport="false"
+                                app:tabMode="fixed"
+                                android:layout_marginStart="5dp"
+                                app:tabIndicatorFullWidth="false"
+                                app:tabSelectedTextColor="@color/black"
+                                app:tabIndicatorColor="@color/black"
+                                app:tabTextColor="#1B1A1A"
+                                app:layout_constraintStart_toStartOf="parent"
+                                tools:ignore="MissingConstraints,RtlSymmetry" />
+
+                        <!-- 切换楼层的排序方式 -->
+
+                        <TextView
+                                android:id="@+id/floor_sort1"
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                android:layout_marginEnd="15dp"
+                                android:text="正序 ∨"
+                                android:textColor="#404040"
+                                tools:ignore="HardcodedText" />
+
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintStart_toStartOf="parent"
+                                android:background="#EFEFEF">
+                            <!-- 不知道为什么，直接用view会报错 -->
+                        </androidx.constraintlayout.widget.ConstraintLayout>
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/floor_list"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="1dp" />
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="80dp">
+
+                        <TextView
+                                android:id="@+id/end_info"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintTop_toTopOf="parent"
+                                android:layout_marginTop="5dp"
+                                android:textSize="14sp"
+                                android:textColor="#D8D7D7" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </LinearLayout>
+            </androidx.core.widget.NestedScrollView>
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/reply_tie_bt"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:background="@color/white"
+            app:layout_constraintStart_toStartOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                app:layout_constraintBottom_toTopOf="parent"
+                android:background="#ECECEC" />
+
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:textColor="#BFBFBF"
+                android:text="说说你的看法..."
+                android:layout_marginStart="20dp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                tools:ignore="HardcodedText" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
+

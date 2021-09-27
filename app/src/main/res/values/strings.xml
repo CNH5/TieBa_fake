@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">贴吧</string>
+    <string name="ba_name">滑稽吧</string>
+    <string name="default_exp_text">关注 119.3W\t\t\t帖子 1.9KW</string>
+    <string name="bottom_navigation_name1">首页</string>
+    <string name="bottom_navigation_name2">我的</string>
+
+    <string name="was_login">was_login</string>
+    <string name="account">account</string>
+    <string name="shared_preferences_file_name">sp_login</string>
+
+    <string name="tie_draft_filename">tie_draft</string>
+    <string name="tie_draft_title">draft_title</string>
+    <string name="tie_draft_info">draft_info</string>
+
+    <string name="string_share">分享</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="undone">暂未完成</string>
+    <string name="login_text">登录百度账号 精彩永相随</string>
+    <string name="login_title">账号密码登录</string>
+    <string name="login_account_hint_text">请输入账号</string>
+    <string name="login_password_hint_text">请输入密码</string>
+    <string name="login_bt_text">登录</string>
+    <string name="test">测试</string>
+    <string name="no_more">已无更多</string>
+</resources>
