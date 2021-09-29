@@ -14,6 +14,7 @@ import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import cc.shinichi.library.ImagePreview;
 import com.bumptech.glide.Glide;
 import com.example.tieba.BackstageInteractive;
 import com.example.tieba.Constants;
@@ -60,7 +61,7 @@ public class UserInfoActivity extends AppCompatActivity implements View.OnClickL
         ImageView community_bt = findViewById(R.id.community_bt);
         community_bt.setOnClickListener(this);
 
-        ImageView avatar = findViewById(R.id.avatar);
+
         findViewById(R.id.back).setOnClickListener(this);
 
         if (account.equals(target)) {
@@ -74,6 +75,9 @@ public class UserInfoActivity extends AppCompatActivity implements View.OnClickL
         }
 
         ((TextView) findViewById(R.id.sex)).setText(user.getSex());
+
+        ImageView avatar = findViewById(R.id.avatar);
+        avatar.setOnClickListener(this);
 
         if (user.getAvatar() == null) {
             avatar.setImageResource(R.mipmap.null_user_avatar);
@@ -217,6 +221,13 @@ public class UserInfoActivity extends AppCompatActivity implements View.OnClickL
 
         } else if (vid == R.id.community_bt || vid == R.id.more) {
             Toast.makeText(this, "暂未实现!", Toast.LENGTH_SHORT).show();
+
+        } else if (vid == R.id.avatar) {
+            ImagePreview.getInstance()
+                    .setContext(this)  // 上下文，必须是activity，不需要担心内存泄漏，本框架已经处理好；
+                    .setIndex(0)  // 设置从第几张开始看（索引从0开始）
+                    .setImage(Constants.GET_IMAGE_PATH + user.getAvatar())
+                    .start();
 
         } else if (vid == R.id.bt1) {
             if (account.equals(target)) {

@@ -4,18 +4,19 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 import android.view.*;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import cc.shinichi.library.ImagePreview;
 import com.bumptech.glide.Glide;
 import com.example.tieba.*;
+import com.example.tieba.activity.LoginActivity;
 import com.example.tieba.activity.UserInfoActivity;
 import com.example.tieba.beans.Floor;
 import com.example.tieba.beans.Level;
-import com.example.tieba.dialogs.ReplyFloorPopupWindow;
+import com.example.tieba.popupWindow.ReplyFloorPopupWindow;
 import com.example.tieba.views.ImageTextButton1;
 import com.example.tieba.views.TextInImageView;
 
@@ -52,21 +53,40 @@ public class FloorAdapter extends RecyclerView.Adapter<FloorAdapter.ViewHolder> 
 
         } else if (vid == R.id.floor_image) {
             // TODO: 点击图片后应当进入全屏浏览状态
-            Log.d("tips", "show image");
+            Floor f = floorList.get((int) v.getTag());
+
+            ImagePreview.getInstance()
+                    .setContext(mContext)  // 上下文，必须是activity，不需要担心内存泄漏，本框架已经处理好；
+                    .setIndex(0)  // 设置从第几张开始看（索引从0开始）
+                    .setImage(Constants.GET_IMAGE_PATH + f.getImg())
+                    .start();
 
         } else if (v.getId() == R.id.good_bt) {
-            int position = (int) v.getTag();
-            Floor f = floorList.get(position);
-            f.like();
-            notifyItemChanged(position, "change_like_bt");
-            BackstageInteractive.sendLike(account, f.getId(), f.getLiked(), Constants.FLOOR);
+            if (account == null) {
+                Intent intent = new Intent(mContext, LoginActivity.class);
+                ((Activity) mContext).startActivityForResult(intent, LoginActivity.CODE);
+            } else {
+                int position = (int) v.getTag();
+                Floor f = floorList.get(position);
+                f.like();
+                notifyItemChanged(position, "change_like_bt");
+                BackstageInteractive.sendLike(account, f.getId(), f.getLiked(), Constants.FLOOR);
+            }
+
 
         } else if (v.getId() == R.id.bad_bt) {
-            int position = (int) v.getTag();
-            Floor f = floorList.get(position);
-            f.unlike();
-            notifyItemChanged(position, "change_like_bt");
-            BackstageInteractive.sendLike(account, f.getId(), f.getLiked(), Constants.FLOOR);
+            if (account == null) {
+                Intent intent = new Intent(mContext, LoginActivity.class);
+                ((Activity) mContext).startActivityForResult(intent, LoginActivity.CODE);
+
+            } else {
+                int position = (int) v.getTag();
+                Floor f = floorList.get(position);
+                f.unlike();
+                notifyItemChanged(position, "change_like_bt");
+                BackstageInteractive.sendLike(account, f.getId(), f.getLiked(), Constants.FLOOR);
+            }
+
 
         } else {
             //TODO: 从页面下方拉出抽屉框，显示回复
@@ -77,22 +97,16 @@ public class FloorAdapter extends RecyclerView.Adapter<FloorAdapter.ViewHolder> 
 //            Dialog dialog = new ReplyFloorDialog(v.getContext(), f, tie_poster_id, account);
 //            dialog.setOnDismissListener(dialog1 -> notifyItemChanged(position, "change_like_bt"));
 //            dialog.show();
-            ReplyFloorPopupWindow window = new ReplyFloorPopupWindow(context, f, tie_poster_id, account);
             //修改背景颜色
-            WindowManager.LayoutParams lp = ((Activity) context).getWindow().getAttributes();
 
+            ReplyFloorPopupWindow window = new ReplyFloorPopupWindow(context, f, tie_poster_id, account);
             window.showAtLocation(
                     ((Activity) context).getWindow().getDecorView(),
                     Gravity.BOTTOM,
                     0, 0
             );
 
-            window.init();
-            window.setOnDismissListener(() -> {
-                lp.alpha = 1.0f;
-                ((Activity) context).getWindow().setAttributes(lp);
-                notifyItemChanged(position, "change_like_bt");
-            });
+            window.setDismissOption(() -> notifyItemChanged(position, "change_like_bt")).init();
         }
     }
 
@@ -122,8 +136,7 @@ public class FloorAdapter extends RecyclerView.Adapter<FloorAdapter.ViewHolder> 
 
         //加载图片
         if (floor.getImg() != null) {
-            Glide.with(mContext).load(Constants.GET_IMAGE_PATH + floor.getImg())
-                    .into(holder.img);
+            Glide.with(mContext).load(Constants.GET_IMAGE_PATH + floor.getImg()).into(holder.img);
             holder.img.setVisibility(View.VISIBLE);
         }
 
@@ -154,6 +167,7 @@ public class FloorAdapter extends RecyclerView.Adapter<FloorAdapter.ViewHolder> 
         holder.setItemTag(position);
         holder.name.setTag(position);
         holder.avatar.setTag(position);
+        holder.img.setTag(position);
         holder.floor_reply_bt.setTag(position);
     }
 

@@ -41,10 +41,6 @@ public class User implements Serializable {
         return name;
     }
 
-    public String getRegistration_date() {
-        return registration_date;
-    }
-
     //获取吧龄，有点难算
     @SuppressLint("DefaultLocale")
     public String getBaAge() {

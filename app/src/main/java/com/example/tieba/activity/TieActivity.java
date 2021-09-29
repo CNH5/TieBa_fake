@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Looper;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -22,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
+import cc.shinichi.library.ImagePreview;
 import com.bumptech.glide.Glide;
 import com.example.tieba.BackstageInteractive;
 import com.example.tieba.Constants;
@@ -48,8 +48,8 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
     private static final String[] TAB_NAMES = new String[]{"全部回复", "只看楼主"};
     private static final String[] ITEMS = {"热门排序", "正序排序", "倒序排序"};
     private static final String[] CONDITIONS = {"all", "only_tie_poster"};
-    private static String floor_order = "floor";  //楼层的排列顺序
-    private static int pos = 0;  //筛选条件，只看楼主和全部
+    private String floor_order = "floor";  //楼层的排列顺序
+    private int pos = 0;  //筛选条件，只看楼主和全部
     private Tie tie;
     private String account;
     private Thread t;
@@ -74,9 +74,10 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
         tie = (Tie) getIntent().getSerializableExtra("tie");
         account = getIntent().getStringExtra("account");
 
-        Intent intent = new Intent();
-        intent.putExtra("tie", tie);
-        intent.putExtra("position", getIntent().getIntExtra("position", -1));
+        Intent intent = new Intent()
+                .putExtra("tie", tie)
+                .putExtra("position", getIntent().getIntExtra("position", -1))
+                .putExtra("account", account);
         setResult(RESULT_OK, intent);
 
         SwipeRefreshLayout swipe = findViewById(R.id.swipe);
@@ -188,6 +189,7 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
 
         if (tie.getImg() != null) {
             ImageView tie_img = findViewById(R.id.tie_image);
+            tie_img.setOnClickListener(this);
             Glide.with(this).load(Constants.GET_IMAGE_PATH + tie.getImg()).into(tie_img);
             tie_img.setVisibility(View.VISIBLE);
         }
@@ -299,7 +301,6 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
 
     @Override
     public void onClick(View v) {
-        Log.d("pos", String.valueOf(pos));
         int vid = v.getId();
         if (vid == R.id.back) {
             finish();
@@ -308,14 +309,26 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
             Toast.makeText(this, "功能未实现!", Toast.LENGTH_SHORT).show();
 
         } else if (vid == R.id.good_bt) {
-            tie.like();
-            setGoodBadButton();
-            BackstageInteractive.sendLike(account, tie.getId(), tie.getLiked(), Constants.TIE);
+            if (account == null) {
+                Intent intent = new Intent(this, LoginActivity.class);
+                startActivityForResult(intent, LoginActivity.CODE);
+
+            } else {
+                tie.like();
+                setGoodBadButton();
+                BackstageInteractive.sendLike(account, tie.getId(), tie.getLiked(), Constants.TIE);
+            }
 
         } else if (vid == R.id.bad_bt) {
-            tie.unlike();
-            setGoodBadButton();
-            BackstageInteractive.sendLike(account, tie.getId(), tie.getLiked(), Constants.TIE);
+            if (account == null) {
+                Intent intent = new Intent(this, LoginActivity.class);
+                startActivityForResult(intent, LoginActivity.CODE);
+
+            } else {
+                tie.unlike();
+                setGoodBadButton();
+                BackstageInteractive.sendLike(account, tie.getId(), tie.getLiked(), Constants.TIE);
+            }
 
         } else if (vid == R.id.avatar || vid == R.id.name) {
             Intent intent = new Intent(this, UserInfoActivity.class);
@@ -324,10 +337,24 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
             intent.putExtra("account", account);
             startActivity(intent);
 
+        } else if (vid == R.id.tie_image) {
+            ImagePreview.getInstance()
+                    .setContext(this)  // 上下文，必须是activity，不需要担心内存泄漏，本框架已经处理好；
+                    .setIndex(0)  // 设置从第几张开始看（索引从0开始）
+                    .setImage(Constants.GET_IMAGE_PATH + tie.getImg())
+                    .start();
+
         } else if (vid == R.id.reply_tie_bt || vid == R.id.comment_bt) {
-            Intent intent = new Intent(this, account != null ? SendFloorActivity.class : LoginActivity.class);
-            intent.putExtra("account", account);
-            intent.putExtra("tie", tie.getId());
+            Intent intent;
+            if (account == null) {
+                intent = new Intent(this, LoginActivity.class);
+
+            } else {
+                intent = new Intent(this, SendFloorActivity.class);
+                intent.putExtra("account", account);
+                intent.putExtra("tie", tie.getId());
+            }
+
             startActivityForResult(intent, SendFloorActivity.CODE);
 
         } else if (vid == R.id.floor_sort1 || vid == R.id.floor_sort2) {
@@ -370,7 +397,13 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
                 }
                 break;
             case LoginActivity.CODE:
-                refreshData();
+                if (resultCode == RESULT_OK) {
+                    assert data != null;
+                    account = data.getStringExtra("account");
+                    //刷新数据
+                    refreshData();
+                    //TODO:最重要的经验加三需要在这里实现
+                }
                 break;
             default:
         }

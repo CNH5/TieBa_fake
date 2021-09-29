@@ -1,11 +1,15 @@
-package com.example.tieba.dialogs;
+package com.example.tieba.popupWindow;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Looper;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
@@ -16,10 +20,12 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import cc.shinichi.library.ImagePreview;
 import com.bumptech.glide.Glide;
 import com.example.tieba.BackstageInteractive;
 import com.example.tieba.Constants;
 import com.example.tieba.R;
+import com.example.tieba.activity.LoginActivity;
 import com.example.tieba.activity.UserInfoActivity;
 import com.example.tieba.adapter.ReplyAdapter;
 import com.example.tieba.beans.Floor;
@@ -30,6 +36,7 @@ import com.example.tieba.views.TextInImageView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import okhttp3.HttpUrl;
+import okhttp3.MultipartBody;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -39,17 +46,29 @@ import java.util.Objects;
  * @author sheng
  * @date 2021/9/27 16:47
  */
-public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickListener {
+public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickListener, TextWatcher {
     private final Context mContext;
     private final View v;
     private ImageTextButton1 good_bt;
     private ImageTextButton1 bad_bt;
     private RecyclerView reply_list;
+    private TextView end_text;
+    private TextView reply_text;
     private Thread getDataThread;
     private List<Reply> list;
     private final Floor floor;
     private final String tie_poster_id;
     private final String account;
+    private DismissOption option;
+
+    public ReplyFloorPopupWindow setDismissOption(DismissOption option) {
+        this.option = option;
+        return this;
+    }
+
+    public interface DismissOption {
+        void dismiss();
+    }
 
     @SuppressLint("InflateParams")
     public ReplyFloorPopupWindow(@NonNull Context context, Floor floor, String tie_poster_id, String account) {
@@ -58,9 +77,11 @@ public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickLi
         this.tie_poster_id = tie_poster_id;
         this.account = account;
         this.mContext = context;
+
         v = LayoutInflater.from(mContext).inflate(R.layout.reply_floor_view, null);
 
         initWindow();
+        initInputView();
     }
 
     private void initWindow() {
@@ -88,16 +109,24 @@ public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickLi
     }
 
     private void initList() {
+        getData();
         waitData();
         ReplyAdapter adapter = new ReplyAdapter(list, mContext, account, tie_poster_id);
 
-        adapter.setItemOnClickListener(this::inputViewVisible);
+        adapter.setItemOnClickListener(() -> {
+            //TODO: 将点击到的楼层的用户名放置到输入框中
+
+        });
 
         reply_list.setAdapter(adapter);
+        initEndText();
     }
 
-    private void inputViewVisible() {
-
+    private void initInputView() {
+        new HeightProvider((Activity) mContext).setHeightListener(height -> {
+            float h = height == 0 ? 0 : mContext.getResources().getDisplayMetrics().heightPixels * 0.07f;
+            v.findViewById(R.id.send_reply).setTranslationY(-height + h);
+        }).init();
     }
 
     private void getData() {
@@ -121,10 +150,11 @@ public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickLi
             }
         });
         getDataThread.start();
+
+        end_text.setText("正在加载...");
     }
 
     public void init() {
-        getData();
         initView();
         initList();
 
@@ -154,7 +184,15 @@ public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickLi
 
         v.findViewById(R.id.close).setOnClickListener(this);
         v.findViewById(R.id.name).setOnClickListener(this);
-        v.findViewById(R.id.reply_input).setOnClickListener(this);
+        v.findViewById(R.id.send_reply_bt).setOnClickListener(this);
+
+        View more_option = v.findViewById(R.id.more_option);
+
+        reply_text = v.findViewById(R.id.reply_text);
+        reply_text.addTextChangedListener(this);
+        reply_text.setOnFocusChangeListener(
+                (v, hasFocus) -> more_option.setVisibility(hasFocus ? View.VISIBLE : View.GONE)
+        );
 
         TextInImageView level_icon = v.findViewById(R.id.level_icon);
         Level level = new Level(floor.getPoster_exp());
@@ -175,9 +213,9 @@ public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickLi
             Glide.with(mContext).load(Constants.GET_IMAGE_PATH + floor.getPoster_avatar()).into(avatar);
         }
 
-        if (floor.getReply_count() == 0) {
-            ((TextView) v.findViewById(R.id.end_text)).setText("此楼还没有回复哦~");
-        }
+        end_text = v.findViewById(R.id.end_text);
+        end_text.setOnClickListener(this);
+
 
         TextView ident = v.findViewById(R.id.ident);
         if (tie_poster_id.equals(floor.getPoster_id())) {
@@ -186,8 +224,9 @@ public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickLi
         }
 
         //加载图片
-        ImageView floor_image = v.findViewById(R.id.floor_image);
         if (floor.getImg() != null) {
+            ImageView floor_image = v.findViewById(R.id.floor_image);
+            floor_image.setOnClickListener(this);
             Glide.with(mContext).load(Constants.GET_IMAGE_PATH + floor.getImg()).into(floor_image);
             floor_image.setVisibility(View.VISIBLE);
         }
@@ -217,14 +256,33 @@ public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickLi
             dismiss();
 
         } else if (vid == R.id.good_bt) {
-            floor.like();
-            setGoodBadButton();
-            BackstageInteractive.sendLike(account, floor.getId(), floor.getLiked(), Constants.FLOOR);
+            if (account == null) {
+                Intent intent = new Intent(mContext, LoginActivity.class);
+                ((Activity) mContext).startActivityForResult(intent, LoginActivity.CODE);
+
+            } else {
+                floor.like();
+                setGoodBadButton();
+                BackstageInteractive.sendLike(account, floor.getId(), floor.getLiked(), Constants.FLOOR);
+            }
 
         } else if (vid == R.id.bad_bt) {
-            floor.unlike();
-            setGoodBadButton();
-            BackstageInteractive.sendLike(account, floor.getId(), floor.getLiked(), Constants.FLOOR);
+            if (account == null) {
+                Intent intent = new Intent(mContext, LoginActivity.class);
+                ((Activity) mContext).startActivityForResult(intent, LoginActivity.CODE);
+
+            } else {
+                floor.unlike();
+                setGoodBadButton();
+                BackstageInteractive.sendLike(account, floor.getId(), floor.getLiked(), Constants.FLOOR);
+            }
+
+        } else if (vid == R.id.floor_image) {
+            ImagePreview.getInstance()
+                    .setContext(mContext)  // 上下文，必须是activity，不需要担心内存泄漏，本框架已经处理好；
+                    .setIndex(0)  // 设置从第几张开始看（索引从0开始）
+                    .setImage(Constants.GET_IMAGE_PATH + floor.getImg())
+                    .start();
 
         } else if (vid == R.id.avatar || vid == R.id.name) {
             Intent intent = new Intent(mContext, UserInfoActivity.class);
@@ -233,8 +291,90 @@ public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickLi
             intent.putExtra("account", account);
             mContext.startActivity(intent);
 
-        } else if (vid == R.id.reply_input) {
-            inputViewVisible();
+        } else if (vid == R.id.send_reply_bt) {
+            if (account == null) {
+                Intent intent = new Intent(mContext, LoginActivity.class);
+                ((Activity) mContext).startActivityForResult(intent, LoginActivity.CODE);
+
+            } else {
+                postReply();
+            }
+
+        } else if (vid == R.id.end_text) {
+            initList();
+
         }
     }
+
+    private void initEndText() {
+        end_text.setText((floor.getReply_count() == 0) ? "此楼还没有回复哦~" : "暂无更多回复");
+    }
+
+    private void postReply() {
+        final String[] result = {null};
+
+        Thread thread = new Thread(() -> {
+            MultipartBody.Builder builder = new MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("account", account)
+                    .addFormDataPart("floor", floor.getId())
+                    .addFormDataPart("info", reply_text.getText().toString());
+
+            try {
+                result[0] = BackstageInteractive.post(Constants.FLOOR_REPLY_PATH, builder.build());
+            } catch (Exception e) {
+                Log.d("err", e.toString());
+            }
+        });
+        thread.start();
+
+        try { //等待获取数据的线程完成,好像也可以在这里设置加载动画
+            thread.join();
+        } catch (InterruptedException e) {
+            Toast.makeText(mContext, "网络异常!", Toast.LENGTH_SHORT).show();
+        }
+
+        if ("succeed".equals(result[0])) {
+            Toast.makeText(mContext, "发送成功!", Toast.LENGTH_SHORT).show();
+            floor.setReply_count(floor.getReply_count() + 1);
+        } else {
+            Toast.makeText(mContext, "发送失败!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+    }
+
+    @Override
+    public void onTextChanged(CharSequence s, int start, int before, int count) {
+        TextView send_bt = v.findViewById(R.id.send_reply_bt);
+        if (!reply_text.getText().toString().equals("")) {
+            send_bt.setTextColor(Color.parseColor("#4096FF"));
+            send_bt.setEnabled(true);
+
+        } else {
+            send_bt.setTextColor(Color.parseColor("#909399"));
+            send_bt.setEnabled(false);
+        }
+    }
+
+    @Override
+    public void afterTextChanged(Editable s) {
+
+    }
+
+    @Override
+    public void dismiss() {
+        super.dismiss();
+
+        WindowManager.LayoutParams lp = ((Activity) mContext).getWindow().getAttributes();
+        lp.alpha = 1.0f;
+        ((Activity) mContext).getWindow().setAttributes(lp);
+
+        option.dismiss();
+    }
+
+
 }

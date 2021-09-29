@@ -23,7 +23,7 @@ public class Constants {
     public static String FLOOR_REPLY_PATH = SERVER_URL + "/reply/floor";
     public static String GET_USER_INFO_PATH = SERVER_URL + "/get/user/info";
     public static String GET_USER_TIE_PATH = SERVER_URL + "/get/user/tie";
-    public static String GET_USER_EXP_PATH = SERVER_URL + "/get/user/exp";
+    public static String GET_BA_PATH = SERVER_URL + "/get/ba";
     public static String CHANGE_USER_INFO_PATH = SERVER_URL + "/change/user_info";
     public static String CHANGE_AVATAR_PATH = SERVER_URL + "/change/avatar";
     public static String LIKE_PATH = SERVER_URL + "/like";

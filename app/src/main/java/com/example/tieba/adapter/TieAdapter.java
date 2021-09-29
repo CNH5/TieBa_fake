@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,8 +12,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import cc.shinichi.library.ImagePreview;
 import com.bumptech.glide.Glide;
 import com.example.tieba.*;
+import com.example.tieba.activity.LoginActivity;
+import com.example.tieba.activity.SendTieActivity;
 import com.example.tieba.activity.TieActivity;
 import com.example.tieba.activity.UserInfoActivity;
 import com.example.tieba.beans.Tie;
@@ -140,21 +142,41 @@ public class TieAdapter extends RecyclerView.Adapter<TieAdapter.ViewHolder> impl
 
         } else if (vid == R.id.image) {
             // TODO: 点击图片后应当进入全屏浏览状态
-            Log.d("tips", "show image");
+            Tie tie = tieList.get((int) v.getTag());
+
+            ImagePreview.getInstance()
+                    .setContext(mContext)  // 上下文，必须是activity，不需要担心内存泄漏，本框架已经处理好；
+                    .setIndex(0)  // 设置从第几张开始看（索引从0开始）
+                    .setImage(Constants.GET_IMAGE_PATH + tie.getImg())
+                    .start();
 
         } else if (v.getId() == R.id.good_bt) {
-            int position = (int) v.getTag();
-            Tie tie = tieList.get(position);
-            tie.like();
-            notifyItemChanged(position, "change_like_bt");
-            BackstageInteractive.sendLike(account, tie.getId(), tie.getLiked(), Constants.TIE);
+            if (account == null) {
+                Intent intent = new Intent(mContext, LoginActivity.class);
+                ((Activity) mContext).startActivityForResult(intent, LoginActivity.CODE);
+
+            } else {
+                int position = (int) v.getTag();
+                Tie tie = tieList.get(position);
+                tie.like();
+                notifyItemChanged(position, "change_like_bt");
+                BackstageInteractive.sendLike(account, tie.getId(), tie.getLiked(), Constants.TIE);
+            }
+
 
         } else if (v.getId() == R.id.bad_bt) {
-            int position = (int) v.getTag();
-            Tie tie = tieList.get(position);
-            tie.unlike();
-            notifyItemChanged(position, "change_like_bt");
-            BackstageInteractive.sendLike(account, tie.getId(), tie.getLiked(), Constants.TIE);
+            if (account == null) {
+                Intent intent = new Intent(mContext, LoginActivity.class);
+                ((Activity) mContext).startActivityForResult(intent, LoginActivity.CODE);
+
+            } else {
+                int position = (int) v.getTag();
+                Tie tie = tieList.get(position);
+                tie.unlike();
+                notifyItemChanged(position, "change_like_bt");
+                BackstageInteractive.sendLike(account, tie.getId(), tie.getLiked(), Constants.TIE);
+            }
+
 
         } else {
             Intent intent = new Intent(mContext, TieActivity.class);

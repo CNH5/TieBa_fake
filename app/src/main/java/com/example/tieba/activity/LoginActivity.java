@@ -102,7 +102,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     //登陆成功,把数据保存下来,提示登录成功,之后跳转到首页
                     rememberAccount();
 
-                    setResult(RESULT_OK);
+                    Intent intent = new Intent();
+                    intent.putExtra("account", account_et.getText());
+
+                    setResult(RESULT_OK, intent);
 
                     finish();
                 }

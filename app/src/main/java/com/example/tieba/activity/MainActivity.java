@@ -26,8 +26,7 @@ import com.bumptech.glide.Glide;
 import com.example.tieba.BackstageInteractive;
 import com.example.tieba.Constants;
 import com.example.tieba.R;
-import com.example.tieba.beans.ExpResult;
-import com.example.tieba.beans.Level;
+import com.example.tieba.beans.Ba;
 import com.example.tieba.beans.Tie;
 import com.example.tieba.fragments.TieListFragment;
 import com.example.tieba.fragments.UndoneFragment;
@@ -45,15 +44,13 @@ import java.util.Objects;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private final static String[] TAB_NAMES = new String[]{"全部", "精华", "动态"};
     public static final String ACCOUNT_VALUE = "MainActivity.ACCOUNT";
-    private Thread getDataThread;
-    private Level level;
-    private boolean was_login;
-    private boolean is_sign;
+    private final String ba_id = "1";
     private String account;
+    private boolean was_login;
+    private Thread getDataThread;
+    private Ba ba;
     //暂时没有数据，吧编号固定为1
-    private final String ba = "1";
     private TieListFragment tie_list;
-    private SwipeRefreshLayout swipe;
 
 
     @Override
@@ -63,6 +60,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //设置按键监听
         setItemOnClickListener();
 
+        initParams();
         //设置吧头像、吧名和显示经验
         initBaInfo();
 
@@ -80,7 +78,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         was_login = spFile.getBoolean(wasLoginKey, false);
         account = was_login ? spFile.getString(accountKey, null) : null;
 
-        swipe = findViewById(R.id.swipe);
+        SwipeRefreshLayout swipe = findViewById(R.id.swipe);
         swipe.setColorSchemeResources(R.color.blue);
 
         swipe.setOnRefreshListener(() -> {
@@ -115,36 +113,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @SuppressLint("SetTextI18n")
     private void initBaInfo() {
-        Glide.with(this).load(Constants.GET_IMAGE_PATH + "/media/images/huaji.jpg")
-                .into((ImageView) findViewById(R.id.ba_avatar));
-        ((TextView) findViewById(R.id.ba_name)).setText(R.string.ba_name);
-        initParams();
-
         getData();
 
         TextView sign_in_bt = findViewById(R.id.sign_in_bt);
         sign_in_bt.setOnClickListener(this);
 
         waitData();
-        //TODO:还有加载失败的界面
 
-        if (was_login && level.getExp() != null) {
+        Glide.with(this).load(Constants.GET_IMAGE_PATH + ba.getAvatar())
+                .into((ImageView) findViewById(R.id.ba_avatar));
+        ((TextView) findViewById(R.id.ba_name)).setText(ba.getName() + "吧");
+
+
+        if (was_login && ba.getExp() != null) {
             //获取经验
 
             ProgressBar exp_progress = findViewById(R.id.exp_progress);
             sign_in_bt.setVisibility(View.VISIBLE);
 
-            if (is_sign) {
+            if (ba.isSigned()) {
                 sign_in_bt.setText("已签到");
                 sign_in_bt.setTextColor(Color.parseColor("#909399"));
                 sign_in_bt.setBackgroundColor(Color.WHITE);
                 sign_in_bt.setEnabled(false);
             }
 
-            ((TextView) findViewById(R.id.level_name)).setText(level.toString());
+            ((TextView) findViewById(R.id.level_name)).setText(ba.getLevel());
             exp_progress.setVisibility(View.VISIBLE);
-            exp_progress.setMax(level.getLevelUpExp());
-            exp_progress.setProgress(level.getExp() != null ? Integer.parseInt(level.getExp()) : 0);
+            exp_progress.setMax(ba.levelUpExp());
+            exp_progress.setProgress(ba.getExp() != null ? Integer.parseInt(ba.getExp()) : 0);
 
         } else {
             ((TextView) findViewById(R.id.level_name)).setText("关注 119.3W\t\t\t帖子 1.9KW");
@@ -199,22 +196,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        //TODO:还有加载失败的界面
     }
 
     private void getData() {
         getDataThread = new Thread(() -> {
             try {
-                HttpUrl get_exp_url = Objects.requireNonNull(HttpUrl.parse(Constants.GET_USER_EXP_PATH)).newBuilder()
+                HttpUrl get_exp_url = Objects.requireNonNull(HttpUrl.parse(Constants.GET_BA_PATH)).newBuilder()
                         .addQueryParameter("account", account)
-                        .addQueryParameter("ba", ba)
+                        .addQueryParameter("ba", ba_id)
                         .build();
 
-                ExpResult result = new Gson().fromJson(
-                        BackstageInteractive.get(get_exp_url),
-                        ExpResult.class
-                );
-                level = new Level(result.getExp());
-                is_sign = result.isSign();
+                ba = new Gson().fromJson(BackstageInteractive.get(get_exp_url), Ba.class);
+
             } catch (Exception e) {
                 Looper.prepare();
                 Toast.makeText(this, "网络异常!", Toast.LENGTH_SHORT).show();
@@ -248,7 +242,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startActivityForResult(intent, was_login ? SendTieActivity.CODE : LoginActivity.CODE);
 
         } else if (vid == R.id.sign_in_bt) {
-            if (level.getExp() == null) {
+            if (ba.getExp() == null) {
                 //经验为空，则应当先关注
                 subscriptionBa();
             } else {
@@ -259,7 +253,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             //显示经验进度
             final AlertDialog.Builder alterDiaglog = new AlertDialog.Builder(this);
             alterDiaglog.setMessage(
-                    "经验值: " + level.getExp() + "/" + level.getLevelUpExp() + "\n" +
+                    "经验值: " + ba.getExp() + "/" + ba.levelUpExp() + "\n" +
                             "超级会员经验加速6倍"
             );//提示消息
             //积极的选择
@@ -279,7 +273,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             MultipartBody.Builder builder = new MultipartBody.Builder()
                     .setType(MultipartBody.FORM)
                     .addFormDataPart("account", account)
-                    .addFormDataPart("ba", ba);
+                    .addFormDataPart("ba", ba_id);
 
             try {
                 result[0] = BackstageInteractive.post(Constants.SUBSCRIPTION_BA_PATH, builder.build());
@@ -309,7 +303,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             MultipartBody.Builder builder = new MultipartBody.Builder()
                     .setType(MultipartBody.FORM)
                     .addFormDataPart("account", account)
-                    .addFormDataPart("ba", ba);
+                    .addFormDataPart("ba", ba_id);
 
             try {
                 result[0] = BackstageInteractive.post(Constants.SIGN_IN_PATH, builder.build());
@@ -343,9 +337,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case TieActivity.CODE: //点击帖子后返回,应当更新在里面的点赞状态
                 if (resultCode == RESULT_OK) {
                     assert data != null;
-                    Tie tie = (Tie) data.getSerializableExtra("tie");
-                    int position = data.getIntExtra("position", -1);
-                    tie_list.changeListItem(position, tie);
+
+                    if (account == null && data.getStringExtra("account") != null) {
+                        initBaInfo();
+                        tie_list.refreshData();
+
+                    } else {
+                        Tie tie = (Tie) data.getSerializableExtra("tie");
+                        int position = data.getIntExtra("position", -1);
+                        tie_list.changeListItem(position, tie);
+                    }
                 }
                 break;
             case SendTieActivity.CODE: //点击发帖后返回，应该根据情况添加一条帖子,或者说刷新页面？
@@ -355,8 +356,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case LoginActivity.CODE: //从登录界面退出来，刷新顶部的经验条什么的,顺带刷新帖子列表？
                 if (resultCode == RESULT_OK) {
-                    initBaInfo();
                     Toast.makeText(this, "登录成功!", Toast.LENGTH_SHORT).show();
+                    initBaInfo();
+                    tie_list.refreshData();
                 }
                 break;
             default: {

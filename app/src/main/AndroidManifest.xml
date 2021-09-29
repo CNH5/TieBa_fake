@@ -12,16 +12,18 @@
 
     <application
             android:allowBackup="false"
-            android:icon="@drawable/tieba"
+            android:icon="@mipmap/tieba"
             android:label="@string/app_name"
-            android:roundIcon="@mipmap/ic_launcher_round"
+            android:roundIcon="@mipmap/tieba"
             android:supportsRtl="true"
             android:theme="@style/Theme.Design.Light.NoActionBar"
             android:usesCleartextTraffic="true">
-        <activity android:name=".activity.ChangeUserInfoActivity"></activity>
+        <activity android:name=".activity.ChangeUserInfoActivity" />
         <activity android:name=".activity.SendFloorActivity" />
         <activity android:name=".activity.UserInfoActivity" />
-        <activity android:name=".activity.TieActivity" />
+        <activity
+                android:name=".activity.TieActivity"
+                android:windowSoftInputMode="adjustNothing" />
         <activity android:name=".activity.SendTieActivity" />
         <activity android:name=".activity.RegisterActivity" />
         <activity android:name=".activity.LoginActivity" />

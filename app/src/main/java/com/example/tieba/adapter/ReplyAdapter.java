@@ -1,5 +1,6 @@
 package com.example.tieba.adapter;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
@@ -14,6 +15,7 @@ import com.bumptech.glide.Glide;
 import com.example.tieba.BackstageInteractive;
 import com.example.tieba.Constants;
 import com.example.tieba.R;
+import com.example.tieba.activity.LoginActivity;
 import com.example.tieba.activity.UserInfoActivity;
 import com.example.tieba.beans.Level;
 import com.example.tieba.beans.Reply;
@@ -79,18 +81,30 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.ViewHolder> 
             Log.d("tips", "show image");
 
         } else if (vid == R.id.good_bt) {
-            int position = (int) v.getTag();
-            Reply r = list.get(position);
-            r.like();
-            notifyItemChanged(position, "change_like_bt");
-            BackstageInteractive.sendLike(account, r.getId(), r.getLiked(), Constants.REPLY);
+            if (account == null) {
+                Intent intent = new Intent(mContext, LoginActivity.class);
+                ((Activity) mContext).startActivityForResult(intent, LoginActivity.CODE);
+
+            } else {
+                int position = (int) v.getTag();
+                Reply r = list.get(position);
+                r.like();
+                notifyItemChanged(position, "change_like_bt");
+                BackstageInteractive.sendLike(account, r.getId(), r.getLiked(), Constants.REPLY);
+            }
 
         } else if (vid == R.id.bad_bt) {
-            int position = (int) v.getTag();
-            Reply r = list.get(position);
-            r.unlike();
-            notifyItemChanged(position, "change_like_bt");
-            BackstageInteractive.sendLike(account, r.getId(), r.getLiked(), Constants.REPLY);
+            if (account == null) {
+                Intent intent = new Intent(mContext, LoginActivity.class);
+                ((Activity) mContext).startActivityForResult(intent, LoginActivity.CODE);
+
+            } else {
+                int position = (int) v.getTag();
+                Reply r = list.get(position);
+                r.unlike();
+                notifyItemChanged(position, "change_like_bt");
+                BackstageInteractive.sendLike(account, r.getId(), r.getLiked(), Constants.REPLY);
+            }
 
         } else {
             listener.onClick();
