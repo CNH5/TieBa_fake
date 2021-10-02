@@ -100,7 +100,7 @@ public class Floor implements Serializable {
         if (d.getYear() < now.getYear()) {
             return date.substring(0, 10);
 
-        } else if (d.getDate() < now.getDate()) {
+        } else if (d.getDate() < now.getDate() || d.getMonth() < now.getMonth()) {
             return date.substring(5, 10);
 
         } else if (d.getHours() < now.getHours()) {

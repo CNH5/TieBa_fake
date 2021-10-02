@@ -1,6 +1,9 @@
 package com.example.tieba;
 
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.util.Log;
+import android.widget.ImageView;
 import okhttp3.*;
 
 import java.io.IOException;
@@ -65,5 +68,41 @@ public class BackstageInteractive {
                 //贴吧断网点赞都没效果,不管了
             }
         }).start();
+    }
+
+    public static String sendFloor(String tie_id, String account, String info, ImageView image) {
+        final String[] result = {null};
+
+        Thread thread = new Thread(() -> {
+            MultipartBody.Builder builder = new MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("tie", tie_id)
+                    .addFormDataPart("account", account)
+                    .addFormDataPart("info", info);
+
+            if (image != null && image.getDrawable() != null) {
+                //直接获取imageview中的图片
+                Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
+                //转文件
+                RequestBody fileBody = RequestBody.create(MediaType.parse("image/*"), Common.getFile(bitmap));
+                builder.addFormDataPart("img", "f.jpg", fileBody);
+            }
+
+            try {
+                result[0] = BackstageInteractive.post(Constants.REPLY_TIE_PATH, builder.build());
+            } catch (IOException e) {
+                e.printStackTrace();
+                result[0] = "网络异常";
+            }
+        });
+        thread.start();
+
+        try { //等待获取数据的线程完成,好像也可以在这里设置加载动画
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        return result[0];
     }
 }

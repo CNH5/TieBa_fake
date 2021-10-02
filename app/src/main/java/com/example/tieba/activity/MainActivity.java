@@ -339,6 +339,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     assert data != null;
 
                     if (account == null && data.getStringExtra("account") != null) {
+                        was_login = true;
                         initBaInfo();
                         tie_list.refreshData();
 

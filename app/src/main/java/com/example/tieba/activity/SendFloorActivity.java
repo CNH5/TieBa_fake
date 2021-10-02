@@ -1,15 +1,14 @@
 package com.example.tieba.activity;
 
+import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
-import android.os.Looper;
 import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -18,22 +17,20 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import com.example.tieba.BackstageInteractive;
-import com.example.tieba.Common;
-import com.example.tieba.Constants;
 import com.example.tieba.R;
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.RequestBody;
 
 public class SendFloorActivity extends AppCompatActivity implements View.OnClickListener, TextWatcher {
     public static final int CODE = 5;
     public static final int GET_IMAGE_EXIT_CODE = 6;
+    public static final int EXIT_CODE = 8;
     private EditText info_et;
     private TextView send_bt;
     private ImageView image;
     private ImageView unselect_img_bt;
     private String account;
     private String tie_id;
+    private Uri uri;
+    private InputMethodManager inputManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +38,8 @@ public class SendFloorActivity extends AppCompatActivity implements View.OnClick
         setContentView(R.layout.activity_send_floor);
 
         initParams();
+
+        initView();
     }
 
     private void initParams() {
@@ -57,6 +56,27 @@ public class SendFloorActivity extends AppCompatActivity implements View.OnClick
 
         account = getIntent().getStringExtra("account");
         tie_id = getIntent().getStringExtra("tie");
+        uri = Uri.parse(getIntent().getStringExtra("imgUri"));
+        info_et.setText(getIntent().getStringExtra("info"));
+
+        inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+    }
+
+    private void initView() {
+        info_et.requestFocus();
+        inputManager.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
+
+        image.setImageURI(uri);
+
+        unselect_img_bt.setVisibility(View.VISIBLE);
+        image.setBackgroundColor(Color.WHITE);
+    }
+
+    private void setResults() {
+        Intent intent = new Intent()
+                .putExtra("info", info_et.getText().toString())
+                .putExtra("imgUri", uri.toString());
+        setResult(EXIT_CODE, intent);
     }
 
     @Override
@@ -77,6 +97,7 @@ public class SendFloorActivity extends AppCompatActivity implements View.OnClick
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.back) {
+            setResults();
             finish();
 
         } else if (v.getId() == R.id.send_floor_bt) {
@@ -90,52 +111,22 @@ public class SendFloorActivity extends AppCompatActivity implements View.OnClick
         } else if (v.getId() == R.id.unselect_img_bt) {
             image.setBackgroundResource(R.mipmap.add_border);
             image.setImageURI(null);
+            uri = null;
             v.setVisibility(View.GONE);
             setSendButton();
         }
     }
 
     private void postFloor() {
-        final String[] result = {null};
+        String result = BackstageInteractive.sendFloor(tie_id, account, info_et.getText().toString(), image);
 
-        Thread thread = new Thread(() -> {
-            MultipartBody.Builder builder = new MultipartBody.Builder()
-                    .setType(MultipartBody.FORM)
-                    .addFormDataPart("tie", tie_id)
-                    .addFormDataPart("account", account)
-                    .addFormDataPart("info", info_et.getText().toString());
-
-            if (image.getDrawable() != null) {
-                //直接获取imageview中的图片
-                Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
-                //转文件
-                RequestBody fileBody = RequestBody.create(MediaType.parse("image/*"), Common.getFile(bitmap));
-                builder.addFormDataPart("img", "f.jpg", fileBody);
-            }
-
-            try {
-                result[0] = BackstageInteractive.post(Constants.REPLY_TIE_PATH, builder.build());
-            } catch (Exception e) {
-                Looper.prepare();
-                Toast.makeText(this, "网络异常!", Toast.LENGTH_SHORT).show();
-                Looper.loop();
-            }
-        });
-        thread.start();
-
-        try { //等待获取数据的线程完成,好像也可以在这里设置加载动画
-            thread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        if ("succeed".equals(result[0])) {
+        if ("succeed".equals(result)) {
             Toast.makeText(this, "发送成功!", Toast.LENGTH_SHORT).show();
 
             setResult(RESULT_OK);
             finish();
         } else {
-            Toast.makeText(this, "发送失败!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, result, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -146,8 +137,8 @@ public class SendFloorActivity extends AppCompatActivity implements View.OnClick
             // 从相册返回的数据
             if (data != null) {
                 // 得到图片的全路径
-                Uri uri = data.getData();
-                //TODO: 需要把图片path保存到editor中，下次打开时再加载进来
+                uri = data.getData();
+
                 image.setImageURI(uri);
                 unselect_img_bt.setVisibility(View.VISIBLE);
                 image.setBackgroundColor(Color.WHITE);
@@ -166,5 +157,11 @@ public class SendFloorActivity extends AppCompatActivity implements View.OnClick
             send_bt.setTextColor(Color.parseColor("#909399"));
             send_bt.setEnabled(false);
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        setResults();
+        super.onBackPressed();
     }
 }

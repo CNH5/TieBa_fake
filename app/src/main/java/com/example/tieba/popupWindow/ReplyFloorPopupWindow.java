@@ -13,10 +13,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.ImageView;
-import android.widget.PopupWindow;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.*;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -48,27 +46,20 @@ import java.util.Objects;
  */
 public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickListener, TextWatcher {
     private final Context mContext;
+    private InputMethodManager inputManager;
     private final View v;
     private ImageTextButton1 good_bt;
     private ImageTextButton1 bad_bt;
     private RecyclerView reply_list;
     private TextView end_text;
-    private TextView reply_text;
+    private EditText reply_text;
+    private View call_reply_view_bt;
+    private View reply_view;
     private Thread getDataThread;
     private List<Reply> list;
     private final Floor floor;
     private final String tie_poster_id;
     private final String account;
-    private DismissOption option;
-
-    public ReplyFloorPopupWindow setDismissOption(DismissOption option) {
-        this.option = option;
-        return this;
-    }
-
-    public interface DismissOption {
-        void dismiss();
-    }
 
     @SuppressLint("InflateParams")
     public ReplyFloorPopupWindow(@NonNull Context context, Floor floor, String tie_poster_id, String account) {
@@ -81,7 +72,6 @@ public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickLi
         v = LayoutInflater.from(mContext).inflate(R.layout.reply_floor_view, null);
 
         initWindow();
-        initInputView();
     }
 
     private void initWindow() {
@@ -113,20 +103,14 @@ public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickLi
         waitData();
         ReplyAdapter adapter = new ReplyAdapter(list, mContext, account, tie_poster_id);
 
-        adapter.setItemOnClickListener(() -> {
-            //TODO: 将点击到的楼层的用户名放置到输入框中
-
+        adapter.itemClick(() -> {
+            reply_view.setVisibility(View.VISIBLE);
+            call_reply_view_bt.setVisibility(View.GONE);
+            return reply_text;
         });
 
         reply_list.setAdapter(adapter);
         initEndText();
-    }
-
-    private void initInputView() {
-        new HeightProvider((Activity) mContext).setHeightListener(height -> {
-            float h = height == 0 ? 0 : mContext.getResources().getDisplayMetrics().heightPixels * 0.07f;
-            v.findViewById(R.id.send_reply).setTranslationY(-height + h);
-        }).init();
     }
 
     private void getData() {
@@ -173,8 +157,13 @@ public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickLi
 
     @SuppressLint("DefaultLocale")
     private void initView() {
+        inputManager = (InputMethodManager) mContext.getSystemService(Context.INPUT_METHOD_SERVICE);
+
         good_bt = v.findViewById(R.id.good_bt);
         bad_bt = v.findViewById(R.id.bad_bt);
+        call_reply_view_bt = v.findViewById(R.id.call_reply_view_bt);
+
+        call_reply_view_bt.setOnClickListener(this);
 
         good_bt.setOnClickListener(this);
         bad_bt.setOnClickListener(this);
@@ -185,14 +174,33 @@ public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickLi
         v.findViewById(R.id.close).setOnClickListener(this);
         v.findViewById(R.id.name).setOnClickListener(this);
         v.findViewById(R.id.send_reply_bt).setOnClickListener(this);
-
-        View more_option = v.findViewById(R.id.more_option);
+        v.findViewById(R.id.emoji).setOnClickListener(this);
+        v.findViewById(R.id.microphone).setOnClickListener(this);
+        v.findViewById(R.id.at).setOnClickListener(this);
 
         reply_text = v.findViewById(R.id.reply_text);
+        reply_text.setFocusable(true);
+        reply_text.setFocusableInTouchMode(true);
         reply_text.addTextChangedListener(this);
-        reply_text.setOnFocusChangeListener(
-                (v, hasFocus) -> more_option.setVisibility(hasFocus ? View.VISIBLE : View.GONE)
-        );
+        reply_view = v.findViewById(R.id.reply_view);
+
+        new HeightProvider((Activity) mContext).setHeightListener(height -> {
+            float h = height == 0 ? 0 : mContext.getResources().getDisplayMetrics().heightPixels * 0.08f;
+            reply_view.setTranslationY(-height + h);
+        }).init();
+
+        v.findViewById(R.id.scroll_item).setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
+            if (scrollY != oldScrollY) {
+                //TODO:滑动时窗口铺满屏幕
+                if (inputManager.isActive()) {
+                    inputManager.hideSoftInputFromWindow(reply_text.getWindowToken(), 0);
+                }
+
+                reply_text.clearFocus();
+                call_reply_view_bt.setVisibility(View.VISIBLE);
+                reply_view.setVisibility(View.GONE);
+            }
+        });
 
         TextInImageView level_icon = v.findViewById(R.id.level_icon);
         Level level = new Level(floor.getPoster_exp());
@@ -255,6 +263,9 @@ public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickLi
             //退出
             dismiss();
 
+        } else if (vid == R.id.emoji || vid == R.id.at || vid == R.id.microphone) {
+            Toast.makeText(mContext, "暂未完成~", Toast.LENGTH_SHORT).show();
+
         } else if (vid == R.id.good_bt) {
             if (account == null) {
                 Intent intent = new Intent(mContext, LoginActivity.class);
@@ -303,6 +314,12 @@ public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickLi
         } else if (vid == R.id.end_text) {
             initList();
 
+        } else if (vid == R.id.call_reply_view_bt) {
+            call_reply_view_bt.setVisibility(View.GONE);
+            reply_view.setVisibility(View.VISIBLE);
+            reply_text.requestFocus();
+
+            inputManager.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
         }
     }
 
@@ -310,6 +327,7 @@ public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickLi
         end_text.setText((floor.getReply_count() == 0) ? "此楼还没有回复哦~" : "暂无更多回复");
     }
 
+    @SuppressLint("DefaultLocale")
     private void postReply() {
         final String[] result = {null};
 
@@ -335,8 +353,18 @@ public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickLi
         }
 
         if ("succeed".equals(result[0])) {
-            Toast.makeText(mContext, "发送成功!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, "发送成功，经验加三", Toast.LENGTH_SHORT).show();
             floor.setReply_count(floor.getReply_count() + 1);
+            ((TextView) v.findViewById(R.id.reply_count)).setText(String.format("%d条回复", floor.getReply_count()));
+            reply_text.setText("");
+
+            if (inputManager.isActive()) {
+                inputManager.hideSoftInputFromWindow(reply_text.getWindowToken(), 0);
+            }
+            reply_view.setVisibility(View.GONE);
+            call_reply_view_bt.setVisibility(View.VISIBLE);
+            initList();
+
         } else {
             Toast.makeText(mContext, "发送失败!", Toast.LENGTH_SHORT).show();
         }
@@ -350,13 +378,19 @@ public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickLi
     @Override
     public void onTextChanged(CharSequence s, int start, int before, int count) {
         TextView send_bt = v.findViewById(R.id.send_reply_bt);
+        TextView text = v.findViewById(R.id.input_tips);
+
         if (!reply_text.getText().toString().equals("")) {
             send_bt.setTextColor(Color.parseColor("#4096FF"));
             send_bt.setEnabled(true);
 
+            text.setText("[草稿待发送]");
+
         } else {
             send_bt.setTextColor(Color.parseColor("#909399"));
             send_bt.setEnabled(false);
+
+            text.setText("说说你的看法...");
         }
     }
 
@@ -372,8 +406,6 @@ public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickLi
         WindowManager.LayoutParams lp = ((Activity) mContext).getWindow().getAttributes();
         lp.alpha = 1.0f;
         ((Activity) mContext).getWindow().setAttributes(lp);
-
-        option.dismiss();
     }
 
 

@@ -1,10 +1,17 @@
 package com.example.tieba.activity;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Looper;
+import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -14,7 +21,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -31,6 +37,7 @@ import com.example.tieba.beans.Floor;
 import com.example.tieba.beans.Level;
 import com.example.tieba.beans.Tie;
 import com.example.tieba.fragments.UndoneFragment;
+import com.example.tieba.popupWindow.HeightProvider;
 import com.example.tieba.views.ImageTextButton1;
 import com.example.tieba.views.TextInImageView;
 import com.google.android.material.tabs.TabLayout;
@@ -43,8 +50,9 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Objects;
 
-public class TieActivity extends AppCompatActivity implements View.OnClickListener {
+public class TieActivity extends AppCompatActivity implements View.OnClickListener, TextWatcher {
     public static final int CODE = 1;
+    public static final int GET_IMAGE_EXIT_CODE = 6;
     private static final String[] TAB_NAMES = new String[]{"全部回复", "只看楼主"};
     private static final String[] ITEMS = {"热门排序", "正序排序", "倒序排序"};
     private static final String[] CONDITIONS = {"all", "only_tie_poster"};
@@ -53,10 +61,15 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
     private Tie tie;
     private String account;
     private Thread t;
+    private Uri imgUri;
     private List<Floor> floorData;
     private RecyclerView floor_list;
     private ImageTextButton1 good_bt;
     private ImageTextButton1 bad_bt;
+    private EditText reply_text;
+    private View reply_view;
+    private View reply_tie_bt;
+    private InputMethodManager inputManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,6 +87,24 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
         tie = (Tie) getIntent().getSerializableExtra("tie");
         account = getIntent().getStringExtra("account");
 
+        reply_text = findViewById(R.id.reply_text);
+        reply_text.addTextChangedListener(this);
+
+        reply_view = findViewById(R.id.reply_view);
+
+        reply_tie_bt = findViewById(R.id.reply_tie_bt);
+        reply_tie_bt.setOnClickListener(this);
+
+        new HeightProvider(this).setHeightListener(height -> reply_view.setTranslationY(-height)).init();
+
+        good_bt = findViewById(R.id.good_bt);
+        bad_bt = findViewById(R.id.bad_bt);
+
+        good_bt.setOnClickListener(this);
+        bad_bt.setOnClickListener(this);
+
+        inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+
         Intent intent = new Intent()
                 .putExtra("tie", tie)
                 .putExtra("position", getIntent().getIntExtra("position", -1))
@@ -88,8 +119,7 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
             swipe.setRefreshing(false);
         });
 
-        NestedScrollView scroll_item = findViewById(R.id.scrollView);
-        scroll_item.setOnScrollChangeListener((View.OnScrollChangeListener) (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
+        findViewById(R.id.scrollView).setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
             swipe.setEnabled(scrollY == 0);
 
             ConstraintLayout tab_view2 = findViewById(R.id.tab_view2);
@@ -100,11 +130,23 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
                 tab_view2.setVisibility(View.VISIBLE);
                 tab_view1.setVisibility(View.GONE);
                 findViewById(R.id.top_bar).setEnabled(true);
+
             } else {
                 //悬浮的切换框不显示
                 findViewById(R.id.top_bar).setEnabled(false);
                 tab_view2.setVisibility(View.GONE);
                 tab_view1.setVisibility(View.VISIBLE);
+            }
+
+            if (scrollY != oldScrollY) {
+                //TODO:滑动时窗口铺满屏幕
+                if (inputManager.isActive()) {
+                    inputManager.hideSoftInputFromWindow(reply_text.getWindowToken(), 0);
+                }
+
+                reply_text.clearFocus();
+                reply_tie_bt.setVisibility(View.VISIBLE);
+                reply_view.setVisibility(View.GONE);
             }
         });
     }
@@ -115,18 +157,19 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
         findViewById(R.id.more).setOnClickListener(this);
         findViewById(R.id.share_bt).setOnClickListener(this);
         findViewById(R.id.comment_bt).setOnClickListener(this);
-        findViewById(R.id.reply_tie_bt).setOnClickListener(this);
         findViewById(R.id.floor_sort1).setOnClickListener(this);
         findViewById(R.id.floor_sort2).setOnClickListener(this);
         findViewById(R.id.avatar).setOnClickListener(this);
         findViewById(R.id.name).setOnClickListener(this);
         findViewById(R.id.subscription_bt).setOnClickListener(this);
-
-        good_bt = findViewById(R.id.good_bt);
-        bad_bt = findViewById(R.id.bad_bt);
-
-        good_bt.setOnClickListener(this);
-        bad_bt.setOnClickListener(this);
+        findViewById(R.id.end_info).setOnClickListener(this);
+        findViewById(R.id.send_reply_bt).setOnClickListener(this);
+        findViewById(R.id.emoji).setOnClickListener(this);
+        findViewById(R.id.reply_image).setOnClickListener(this);
+        findViewById(R.id.microphone).setOnClickListener(this);
+        findViewById(R.id.at).setOnClickListener(this);
+        findViewById(R.id.gift).setOnClickListener(this);
+        findViewById(R.id.reply_more).setOnClickListener(this);
     }
 
     private void initTab() {
@@ -242,11 +285,6 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
         FloorAdapter adapter = new FloorAdapter(floorData, this, account, tie.getPoster_id());
         floor_list.setAdapter(adapter);
 
-        setBottomText();
-    }
-
-    private void setBottomText() {
-        ((TextView) findViewById(R.id.end_info)).setText(floorData.size() > 0 ? "暂无更多" : "偷偷告诉你，这还毛都没有T T");
     }
 
     private void getData() {
@@ -262,10 +300,8 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
             }.getType();  //创建一个新类型
 
             try {
-                floorData = new Gson().fromJson(
-                        BackstageInteractive.get(url),
-                        type_tie_list
-                );
+                floorData = new Gson().fromJson(BackstageInteractive.get(url), type_tie_list);
+
             } catch (Exception e) {
                 Looper.prepare();
                 Toast.makeText(this, "网络异常!", Toast.LENGTH_SHORT).show();
@@ -281,15 +317,16 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        ((TextView) findViewById(R.id.end_info)).setText(floorData.size() > 0 ? "暂无更多" : "偷偷告诉你，这还毛都没有T T");
     }
 
     private void refreshData() {
         getData();
         waitData();
+
         FloorAdapter adapter = new FloorAdapter(floorData, this, account, tie.getPoster_id());
         floor_list.setAdapter(adapter);
-
-        setBottomText();
     }
 
     private void setGoodBadButton() {
@@ -345,17 +382,30 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
                     .start();
 
         } else if (vid == R.id.reply_tie_bt || vid == R.id.comment_bt) {
-            Intent intent;
-            if (account == null) {
-                intent = new Intent(this, LoginActivity.class);
+            if (imgUri != null) {
+                Intent intent;
+                if (account == null) {
+                    intent = new Intent(this, LoginActivity.class);
+                    startActivityForResult(intent, LoginActivity.CODE);
 
+                } else {
+                    intent = new Intent(this, SendFloorActivity.class)
+                            .putExtra("account", account)
+                            .putExtra("tie", tie.getId())
+                            .putExtra("info", reply_text.getText())
+                            .putExtra("imgUri", imgUri.toString());
+
+                    startActivityForResult(intent, SendFloorActivity.CODE);
+                }
             } else {
-                intent = new Intent(this, SendFloorActivity.class);
-                intent.putExtra("account", account);
-                intent.putExtra("tie", tie.getId());
+                reply_tie_bt.setVisibility(View.GONE);
+                //显示回复框
+                reply_view.setVisibility(View.VISIBLE);
+                //输入框获取焦点
+                reply_text.requestFocus();
+                //调起键盘
+                inputManager.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
             }
-
-            startActivityForResult(intent, SendFloorActivity.CODE);
 
         } else if (vid == R.id.floor_sort1 || vid == R.id.floor_sort2) {
             new AlertDialog.Builder(this).setItems(ITEMS, (dialog, which) -> {
@@ -382,6 +432,41 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
                     default:
                 }
             }).show();
+
+        } else if (vid == R.id.end_info) {
+            ((TextView) findViewById(R.id.end_info)).setText("加载中...");
+            refreshData();
+
+        } else if (vid == R.id.send_reply_bt) {
+            sendFloor();
+
+        } else if (vid == R.id.reply_image) {
+            //跳转到获取图片的activity
+            Intent intent = new Intent(Intent.ACTION_PICK, null);
+            intent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
+            startActivityForResult(intent, GET_IMAGE_EXIT_CODE);
+
+        } else {
+            Toast.makeText(this, "暂未完成!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void sendFloor() {
+        String result = BackstageInteractive.sendFloor(tie.getId(), account, reply_text.getText().toString(), null);
+
+        if ("succeed".equals(result)) {
+            Toast.makeText(this, "发送成功，经验加三!", Toast.LENGTH_SHORT).show();
+            reply_text.setText("");
+            reply_view.setVisibility(View.GONE);
+            reply_tie_bt.setVisibility(View.VISIBLE);
+
+            if (inputManager.isActive()) {
+                inputManager.hideSoftInputFromWindow(reply_text.getWindowToken(), 0);
+            }
+
+            refreshData();
+        } else {
+            Toast.makeText(this, result, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -393,7 +478,20 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
                 if (resultCode == RESULT_OK) {
                     //刷新数据
                     refreshData();
+                    //修改输入框
                     //TODO:最重要的经验加三需要在这里实现
+                    Toast.makeText(this, "发送成功,经验加三", Toast.LENGTH_SHORT).show();
+                    //清空输入框
+                    imgUri = null;
+                    reply_text.setText("");
+
+                } else if (resultCode == SendFloorActivity.EXIT_CODE) {
+                    assert data != null;
+                    imgUri = Uri.parse(data.getStringExtra("imgUri"));
+                    reply_text.setText(data.getStringExtra("info"));
+
+                    reply_tie_bt.setVisibility(View.VISIBLE);
+                    reply_view.setVisibility(View.GONE);
                 }
                 break;
             case LoginActivity.CODE:
@@ -402,10 +500,49 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
                     account = data.getStringExtra("account");
                     //刷新数据
                     refreshData();
-                    //TODO:最重要的经验加三需要在这里实现
+                }
+                break;
+            case GET_IMAGE_EXIT_CODE:
+                if (data != null) {
+                    // 得到图片的全路径
+                    imgUri = data.getData();
+                    Intent intent = new Intent(this, SendFloorActivity.class)
+                            .putExtra("imgUri", imgUri.toString())
+                            .putExtra("info", reply_text.getText().toString());
+
+                    startActivityForResult(intent, SendFloorActivity.CODE);
                 }
                 break;
             default:
         }
+    }
+
+    @Override
+    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+    }
+
+    @Override
+    public void onTextChanged(CharSequence s, int start, int before, int count) {
+        TextView send_bt = findViewById(R.id.send_reply_bt);
+        TextView text = findViewById(R.id.input_tips);
+
+        if (!reply_text.getText().toString().equals("") && imgUri != null) {
+            send_bt.setTextColor(Color.parseColor("#4096FF"));
+            send_bt.setEnabled(true);
+
+            text.setText("[草稿待发送]");
+
+        } else {
+            send_bt.setTextColor(Color.parseColor("#909399"));
+            send_bt.setEnabled(false);
+
+            text.setText("说说你的看法...");
+        }
+    }
+
+    @Override
+    public void afterTextChanged(Editable s) {
+
     }
 }

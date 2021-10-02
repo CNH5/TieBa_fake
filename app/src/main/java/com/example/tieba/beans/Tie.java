@@ -103,6 +103,10 @@ public class Tie implements Serializable {
         this.poster_id = poster_id;
     }
 
+    public void setPoster_exp(String poster_exp) {
+        this.poster_exp = poster_exp;
+    }
+
     public String getPoster_name() {
         return poster_name;
     }
@@ -139,7 +143,7 @@ public class Tie implements Serializable {
         if (d.getYear() < now.getYear()) {
             return date.substring(0, 10);
 
-        } else if (d.getDate() < now.getDate()) {
+        } else if (d.getDate() < now.getDate() || d.getMonth() < now.getMonth()) {
             return date.substring(5, 10);
 
         } else if (d.getHours() < now.getHours()) {

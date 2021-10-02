@@ -28,7 +28,7 @@
                 <androidx.appcompat.widget.Toolbar
                         android:id="@+id/toolbar1"
                         android:layout_width="match_parent"
-                        android:layout_height="?attr/actionBarSize"
+                        android:layout_height="50dp"
                         android:background="@color/white"
                         android:theme="@style/Widget.AppCompat.Light.ActionBar">
 
@@ -321,6 +321,7 @@
                             android:id="@+id/floor_list"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:overScrollMode="ifContentScrolls"
                             android:layout_marginTop="1dp" />
 
                     <androidx.constraintlayout.widget.ConstraintLayout
@@ -329,8 +330,9 @@
 
                         <TextView
                                 android:id="@+id/end_info"
-                                android:layout_width="wrap_content"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:gravity="center"
                                 app:layout_constraintStart_toStartOf="parent"
                                 app:layout_constraintEnd_toEndOf="parent"
                                 app:layout_constraintTop_toTopOf="parent"
@@ -340,10 +342,11 @@
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
                 </LinearLayout>
+
             </androidx.core.widget.NestedScrollView>
+
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
 
     <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/reply_tie_bt"
@@ -360,6 +363,7 @@
                 android:background="#ECECEC" />
 
         <TextView
+                android:id="@+id/input_tips"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="18sp"
@@ -371,5 +375,131 @@
                 app:layout_constraintStart_toStartOf="parent"
                 tools:ignore="HardcodedText" />
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <LinearLayout
+            android:id="@+id/reply_view"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:orientation="vertical">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent">
+
+            <EditText
+                    android:id="@+id/reply_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:inputType="textMultiLine"
+                    android:layout_marginStart="15dp"
+                    android:layout_marginEnd="70dp"
+                    android:hint="说说你的看法..."
+                    android:background="@color/white"
+                    android:textCursorDrawable="@drawable/cursor_blue"
+                    android:textColor="@color/black"
+                    tools:ignore="Autofill,HardcodedText" />
+
+            <TextView
+                    android:id="@+id/send_reply_bt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintBottom_toBottomOf="@id/reply_text"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    android:textSize="18sp"
+                    android:textColor="#909399"
+                    android:text="发布"
+                    android:enabled="false"
+                    android:layout_marginEnd="15dp"
+                    android:layout_marginBottom="12dp"
+                    tools:ignore="HardcodedText" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#EFEFEF" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/more_option"
+                android:layout_width="match_parent"
+                android:layout_height="45dp">
+
+            <ImageView
+                    android:id="@+id/emoji"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@mipmap/huaji"
+                    android:layout_marginStart="15dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    tools:ignore="ContentDescription" />
+
+            <ImageView
+                    android:id="@+id/reply_image"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:src="@mipmap/image"
+                    app:layout_constraintStart_toEndOf="@id/emoji"
+                    app:layout_constraintEnd_toStartOf="@+id/microphone"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    tools:ignore="ContentDescription" />
+
+            <ImageView
+                    android:id="@+id/microphone"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:src="@mipmap/microphone"
+                    app:layout_constraintStart_toEndOf="@id/reply_image"
+                    app:layout_constraintEnd_toStartOf="@+id/at"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    tools:ignore="ContentDescription" />
+
+            <ImageView
+                    android:id="@+id/at"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:src="@mipmap/at"
+                    app:layout_constraintStart_toEndOf="@id/microphone"
+                    app:layout_constraintEnd_toStartOf="@+id/gift"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    tools:ignore="ContentDescription" />
+
+            <ImageView
+                    android:id="@+id/gift"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:src="@mipmap/gift"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/reply_more"
+                    app:layout_constraintStart_toEndOf="@+id/at"
+                    tools:ignore="ContentDescription" />
+
+            <ImageView
+                    android:id="@+id/reply_more"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:src="@mipmap/plus_round"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    android:layout_marginEnd="15dp"
+                    tools:ignore="ContentDescription" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
 

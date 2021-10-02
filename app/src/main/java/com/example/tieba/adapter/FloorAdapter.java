@@ -106,7 +106,11 @@ public class FloorAdapter extends RecyclerView.Adapter<FloorAdapter.ViewHolder> 
                     0, 0
             );
 
-            window.setDismissOption(() -> notifyItemChanged(position, "change_like_bt")).init();
+            window.setOnDismissListener(() -> {
+                notifyItemChanged(position, "change_all");
+                System.out.println(f.getReply_count());
+            });
+            window.init();
         }
     }
 
@@ -140,12 +144,6 @@ public class FloorAdapter extends RecyclerView.Adapter<FloorAdapter.ViewHolder> 
             holder.img.setVisibility(View.VISIBLE);
         }
 
-        //设置回复楼层按钮是否可见
-        if (floor.getReply_count() > 0) {
-            holder.floor_reply_bt.setText(String.format("查看全部%d条评论 >", floor.getReply_count()));
-            holder.floor_reply_bt.setVisibility(View.VISIBLE);
-        }
-
         if (floor.getInfo() == null) {
             holder.floor_info.setVisibility(View.GONE);
         } else {
@@ -161,6 +159,7 @@ public class FloorAdapter extends RecyclerView.Adapter<FloorAdapter.ViewHolder> 
         }
 
         setLike_Bad_bt(holder, floor);
+        set_reply_num(holder, floor);
 
         holder.good_bt.setTag(position);
         holder.bad_bt.setTag(position);
@@ -182,8 +181,24 @@ public class FloorAdapter extends RecyclerView.Adapter<FloorAdapter.ViewHolder> 
 
                 if ("change_like_bt".equals(payloads.get(0))) {
                     setLike_Bad_bt(holder, f);
+                } else if ("change_all".equals(payloads.get(0))) {
+                    setLike_Bad_bt(holder, f);
+                    set_reply_num(holder, f);
                 }
             }
+        }
+    }
+
+    //设置回复楼层按钮是否可见
+    @SuppressLint("DefaultLocale")
+    private void set_reply_num(FloorAdapter.ViewHolder holder, Floor f) {
+        if (f.getReply_count() > 0) {
+            holder.floor_reply_bt.setText(String.format("查看全部%d条评论 >", f.getReply_count()));
+            holder.floor_reply_bt.setVisibility(View.VISIBLE);
+
+        } else {
+            holder.floor_reply_bt.setVisibility(View.GONE);
+
         }
     }
 

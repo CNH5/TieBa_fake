@@ -60,7 +60,7 @@ public class TieListFragment extends Fragment implements View.OnClickListener {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_tie_list, container, false);
+        View v = inflater.inflate(R.layout.tie_list_fragment, container, false);
         lvTieList = v.findViewById(R.id.tie_list);
         lvTieList.setLayoutManager(new LinearLayoutManager(getActivity()));
         v.findViewById(R.id.tie_sort).setOnClickListener(this);

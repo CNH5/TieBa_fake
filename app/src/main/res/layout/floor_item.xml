@@ -32,7 +32,7 @@
                 android:layout_height="wrap_content"
                 app:layout_constraintTop_toTopOf="@+id/avatar"
                 app:layout_constraintStart_toEndOf="@+id/avatar"
-                android:layout_marginStart="10dp"
+                android:layout_marginStart="5dp"
                 android:textColor="@color/black"
                 android:textSize="16sp" />
 
@@ -95,7 +95,7 @@
             android:id="@+id/floor_info"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="65dp"
+            android:layout_marginStart="60dp"
             android:layout_marginTop="10dp"
             android:layout_marginEnd="15dp"
             android:textColor="@color/black"
@@ -107,14 +107,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="7dp"
-            android:layout_marginStart="65dp"
+            android:layout_marginStart="60dp"
             android:layout_marginEnd="25dp"
             android:layout_gravity="start|top"
             android:background="@drawable/image_border"
             tools:ignore="ContentDescription" />
 
     <TextView
-            android:visibility="gone"
             android:id="@+id/floor_reply_bt"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -125,15 +124,15 @@
             android:paddingTop="6dp"
             android:paddingBottom="6dp"
             android:paddingStart="6dp"
-            android:layout_marginStart="65dp"
-            android:layout_marginTop="5dp"
+            android:layout_marginStart="60dp"
+            android:layout_marginTop="10dp"
             android:layout_marginEnd="15dp"
             tools:ignore="RtlSymmetry" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_marginTop="15dp"
+            android:layout_marginTop="12dp"
             android:background="#EFEFEF">
         <!-- 不知道为什么，直接用view会报错 -->
     </androidx.constraintlayout.widget.ConstraintLayout>

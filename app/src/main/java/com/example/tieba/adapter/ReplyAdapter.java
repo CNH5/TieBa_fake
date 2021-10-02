@@ -7,6 +7,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -33,14 +35,14 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.ViewHolder> 
     private final Context mContext;
     private final String account;
     private final String tie_poster_id;
-    private itemOnClickListener listener;
+    private OnItemClick click;
 
-    public void setItemOnClickListener(itemOnClickListener listener) {
-        this.listener = listener;
+    public void itemClick(OnItemClick click) {
+        this.click = click;
     }
 
-    public interface itemOnClickListener {
-        void onClick();
+    public interface OnItemClick {
+        EditText getView();
     }
 
     public ReplyAdapter(List<Reply> list, Context mContext, String account, String tie_poster_id) {
@@ -107,7 +109,13 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.ViewHolder> 
             }
 
         } else {
-            listener.onClick();
+            Reply r = list.get((int) v.getTag());
+            click.getView().setText(String.format("回复 %s: ", r.getPoster_name()));
+            click.getView().requestFocus();
+            click.getView().setSelection(click.getView().getText().length());
+
+            ((InputMethodManager) mContext.getSystemService(Context.INPUT_METHOD_SERVICE))
+                    .toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
         }
     }
 
