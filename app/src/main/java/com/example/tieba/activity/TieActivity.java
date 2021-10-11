@@ -527,7 +527,8 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
         TextView send_bt = findViewById(R.id.send_reply_bt);
         TextView text = findViewById(R.id.input_tips);
 
-        if (!reply_text.getText().toString().equals("") && imgUri != null) {
+        System.out.println(reply_text.getText().toString());
+        if (!reply_text.getText().toString().equals("") || imgUri != null) {
             send_bt.setTextColor(Color.parseColor("#4096FF"));
             send_bt.setEnabled(true);
 

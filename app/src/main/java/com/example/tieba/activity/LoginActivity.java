@@ -103,7 +103,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     rememberAccount();
 
                     Intent intent = new Intent();
-                    intent.putExtra("account", account_et.getText());
+                    intent.putExtra("account", account_et.getText().toString());
 
                     setResult(RESULT_OK, intent);
 

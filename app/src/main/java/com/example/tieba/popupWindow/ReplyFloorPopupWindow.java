@@ -353,17 +353,20 @@ public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickLi
         }
 
         if ("succeed".equals(result[0])) {
-            Toast.makeText(mContext, "发送成功，经验加三", Toast.LENGTH_SHORT).show();
-            floor.setReply_count(floor.getReply_count() + 1);
+            initList();
+
+            floor.setReply_count(list.size());
             ((TextView) v.findViewById(R.id.reply_count)).setText(String.format("%d条回复", floor.getReply_count()));
             reply_text.setText("");
-
+            reply_text.clearFocus();
+            
             if (inputManager.isActive()) {
                 inputManager.hideSoftInputFromWindow(reply_text.getWindowToken(), 0);
             }
             reply_view.setVisibility(View.GONE);
             call_reply_view_bt.setVisibility(View.VISIBLE);
-            initList();
+
+            Toast.makeText(mContext, "发送成功，经验加三", Toast.LENGTH_SHORT).show();
 
         } else {
             Toast.makeText(mContext, "发送失败!", Toast.LENGTH_SHORT).show();

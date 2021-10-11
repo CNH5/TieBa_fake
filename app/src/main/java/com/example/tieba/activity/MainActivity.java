@@ -76,6 +76,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         SharedPreferences spFile = getSharedPreferences(spFileName, MODE_PRIVATE);
 
         was_login = spFile.getBoolean(wasLoginKey, false);
+//        was_login = false;
         account = was_login ? spFile.getString(accountKey, null) : null;
 
         SwipeRefreshLayout swipe = findViewById(R.id.swipe);
@@ -315,7 +316,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
         thread.start();
 
-        try { //等待上传数据的线程完成,好像也可以在这里设置加载动画
+        try {
             thread.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -357,8 +358,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case LoginActivity.CODE: //从登录界面退出来，刷新顶部的经验条什么的,顺带刷新帖子列表？
                 if (resultCode == RESULT_OK) {
+                    assert data != null;
+
+                    account = data.getStringExtra("account");
                     Toast.makeText(this, "登录成功!", Toast.LENGTH_SHORT).show();
+                    was_login = true;
+
+                    System.out.println(account);
                     initBaInfo();
+
+                    tie_list.setAccount(account);
                     tie_list.refreshData();
                 }
                 break;
