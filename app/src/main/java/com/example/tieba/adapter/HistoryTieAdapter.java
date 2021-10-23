@@ -99,7 +99,7 @@ public class HistoryTieAdapter extends RecyclerView.Adapter<HistoryTieAdapter.Vi
                         .inflate(R.layout.history_tie_item, parent, false));
     }
 
-    @SuppressLint("SetTextI18n")
+    @SuppressLint({"SetTextI18n", "DefaultLocale"})
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Tie tie = tieList.get(position);
@@ -119,8 +119,8 @@ public class HistoryTieAdapter extends RecyclerView.Adapter<HistoryTieAdapter.Vi
             holder.image.setVisibility(View.VISIBLE);
         }
 
-        holder.dd.setText(tie.getDateValue().getDate() + "");
-        holder.mm.setText(numbers[tie.getDateValue().getMonth() - 1] + "月");
+        holder.dd.setText(String.format("%02d",tie.getDateValue().getDate()));
+        holder.mm.setText(numbers[tie.getDateValue().getMonth()] + "月");
 
         holder.comment_bt.setImageResource(R.mipmap.comment);
         holder.share_bt.setImageResource(R.mipmap.share);

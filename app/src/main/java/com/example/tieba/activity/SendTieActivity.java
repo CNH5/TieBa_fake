@@ -1,5 +1,6 @@
 package com.example.tieba.activity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -11,6 +12,7 @@ import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -43,7 +45,6 @@ public class SendTieActivity extends AppCompatActivity implements View.OnClickLi
 
         getAccount();
         initView();
-        setOnClickListener();
         loadDraft();
     }
 
@@ -106,16 +107,20 @@ public class SendTieActivity extends AppCompatActivity implements View.OnClickLi
         title_et.addTextChangedListener(this);
         info_et.addTextChangedListener(this);
 
+        //正文editText获取焦点
+        info_et.requestFocus();
+        //调起键盘
+        InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputManager.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
+
         findViewById(R.id.back).setOnClickListener(this);
         findViewById(R.id.send_tie_bt).setOnClickListener(this);
+
+        //设置删除图片按钮
         unselect_img_bt = findViewById(R.id.unselect_img_bt);
         unselect_img_bt.setOnClickListener(this);
         image = findViewById(R.id.image);
         image.setOnClickListener(this);
-    }
-
-    private void setOnClickListener() {
-
     }
 
     @Override

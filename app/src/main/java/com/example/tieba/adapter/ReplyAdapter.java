@@ -153,11 +153,7 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.ViewHolder> 
 
         //TODO: 把这玩意变圆...
         //加载发帖用户的头像
-        if (reply.getPoster_avatar() == null) {
-            holder.avatar.setImageResource(R.mipmap.null_user_avatar);
-        } else {
-            Glide.with(mContext).load(Constants.GET_IMAGE_PATH + reply.getPoster_avatar()).into(holder.avatar);
-        }
+        Glide.with(mContext).load(Constants.GET_IMAGE_PATH + reply.getPoster_avatar()).into(holder.avatar);
 
         holder.good_bt.setOnClickListener(this);
         holder.bad_bt.setOnClickListener(this);

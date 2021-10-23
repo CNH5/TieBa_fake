@@ -71,7 +71,7 @@ public class TieListFragment extends Fragment implements View.OnClickListener {
     //获取数据
     private void getData() {
         getDataThread = new Thread(() -> {
-            HttpUrl get_tie_list_url = Objects.requireNonNull(HttpUrl.parse(Constants.GET_TIE_PATH)).newBuilder()
+            HttpUrl get_tie_list_url = Objects.requireNonNull(HttpUrl.parse(Constants.GET_TIE_LIST_PATH)).newBuilder()
                     .addQueryParameter("account", account)
                     //暂时没有数据，吧编号固定为1
                     .addQueryParameter("ba", "1")

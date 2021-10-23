@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         SharedPreferences spFile = getSharedPreferences(spFileName, MODE_PRIVATE);
 
         was_login = spFile.getBoolean(wasLoginKey, false);
-//        was_login = false;
+//        was_login = false;  //每次打开都要重新登录，注释掉就不用，但是没法退出登录
         account = was_login ? spFile.getString(accountKey, null) : null;
 
         SwipeRefreshLayout swipe = findViewById(R.id.swipe);
@@ -252,18 +252,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         } else if (vid == R.id.level_name || vid == R.id.exp_progress) {
             //显示经验进度
-            final AlertDialog.Builder alterDiaglog = new AlertDialog.Builder(this);
-            alterDiaglog.setMessage(
+            final AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+            alertDialog.setMessage(
                     "经验值: " + ba.getExp() + "/" + ba.levelUpExp() + "\n" +
                             "超级会员经验加速6倍"
             );//提示消息
             //积极的选择
-            alterDiaglog.setPositiveButton("立即开通", (dialog, which) -> Toast.makeText(MainActivity.this, "暂未实现！", Toast.LENGTH_SHORT).show());
+            alertDialog.setPositiveButton("立即开通", (dialog, which) ->
+                    Toast.makeText(MainActivity.this, "暂未实现！", Toast.LENGTH_SHORT).show()
+            );
             //中立的选择
-            alterDiaglog.setNeutralButton("取消", (dialog, which) -> {
+            alertDialog.setNeutralButton("取消", (dialog, which) -> {
             });
             //显示
-            alterDiaglog.show();
+            alertDialog.show();
         }
     }
 
@@ -338,10 +340,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case TieActivity.CODE: //点击帖子后返回,应当更新在里面的点赞状态
                 if (resultCode == RESULT_OK) {
                     assert data != null;
-
                     if (account == null && data.getStringExtra("account") != null) {
                         was_login = true;
+                        account = data.getStringExtra("account");
                         initBaInfo();
+
+                        tie_list.setAccount(account);
                         tie_list.refreshData();
 
                     } else {
@@ -349,6 +353,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         int position = data.getIntExtra("position", -1);
                         tie_list.changeListItem(position, tie);
                     }
+                    System.out.println(was_login);
                 }
                 break;
             case SendTieActivity.CODE: //点击发帖后返回，应该根据情况添加一条帖子,或者说刷新页面？

@@ -16,7 +16,6 @@ import cc.shinichi.library.ImagePreview;
 import com.bumptech.glide.Glide;
 import com.example.tieba.*;
 import com.example.tieba.activity.LoginActivity;
-import com.example.tieba.activity.SendTieActivity;
 import com.example.tieba.activity.TieActivity;
 import com.example.tieba.activity.UserInfoActivity;
 import com.example.tieba.beans.Tie;
@@ -54,12 +53,7 @@ public class TieAdapter extends RecyclerView.Adapter<TieAdapter.ViewHolder> impl
 
         //TODO: 把这玩意变圆...
         //加载发帖用户的头像
-        if (tie.getPoster_avatar() == null) {
-            holder.poster_avatar.setImageResource(R.mipmap.null_user_avatar);
-        } else {
-            Glide.with(mContext).load(Constants.GET_IMAGE_PATH + tie.getPoster_avatar())
-                    .into(holder.poster_avatar);
-        }
+        Glide.with(mContext).load(Constants.GET_IMAGE_PATH + tie.getPoster_avatar()).into(holder.poster_avatar);
 
         holder.poster_name.setText(tie.getPoster_name());
         holder.date.setText(tie.getDate());
@@ -163,7 +157,6 @@ public class TieAdapter extends RecyclerView.Adapter<TieAdapter.ViewHolder> impl
                 BackstageInteractive.sendLike(account, tie.getId(), tie.getLiked(), Constants.TIE);
             }
 
-
         } else if (v.getId() == R.id.bad_bt) {
             if (account == null) {
                 Intent intent = new Intent(mContext, LoginActivity.class);
@@ -177,12 +170,13 @@ public class TieAdapter extends RecyclerView.Adapter<TieAdapter.ViewHolder> impl
                 BackstageInteractive.sendLike(account, tie.getId(), tie.getLiked(), Constants.TIE);
             }
 
-
         } else {
+            int position = (int) v.getTag();
             Intent intent = new Intent(mContext, TieActivity.class);
-            intent.putExtra("tie", tieList.get((int) v.getTag()));
+
+            intent.putExtra("tie_id", tieList.get(position).getId());
             intent.putExtra("account", account);
-            intent.putExtra("position", (int) v.getTag());
+            intent.putExtra("position", position);
             ((Activity) mContext).startActivityForResult(intent, TieActivity.CODE);
         }
     }

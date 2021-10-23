@@ -58,6 +58,7 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
     private static final String[] CONDITIONS = {"all", "only_tie_poster"};
     private String floor_order = "floor";  //楼层的排列顺序
     private int pos = 0;  //筛选条件，只看楼主和全部
+    private String tie_id;
     private Tie tie;
     private String account;
     private Thread t;
@@ -84,8 +85,8 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
     }
 
     private void initParams() {
-        tie = (Tie) getIntent().getSerializableExtra("tie");
         account = getIntent().getStringExtra("account");
+        tie_id = getIntent().getStringExtra("tie_id");
 
         reply_text = findViewById(R.id.reply_text);
         reply_text.addTextChangedListener(this);
@@ -104,12 +105,6 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
         bad_bt.setOnClickListener(this);
 
         inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-
-        Intent intent = new Intent()
-                .putExtra("tie", tie)
-                .putExtra("position", getIntent().getIntExtra("position", -1))
-                .putExtra("account", account);
-        setResult(RESULT_OK, intent);
 
         SwipeRefreshLayout swipe = findViewById(R.id.swipe);
         swipe.setColorSchemeResources(R.color.blue);
@@ -222,6 +217,10 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
 
     @SuppressLint("SetTextI18n")
     private void initView() {
+        if (tie == null) {
+            waitData();
+        }
+
         ImageView avatar = findViewById(R.id.avatar);
 
         if (tie.getPoster_avatar() == null) {
@@ -280,8 +279,6 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
 
         //TODO:表情框还没弄
 
-        waitData();
-
         FloorAdapter adapter = new FloorAdapter(floorData, this, account, tie.getPoster_id());
         floor_list.setAdapter(adapter);
 
@@ -289,19 +286,27 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
 
     private void getData() {
         t = new Thread(() -> {
-            HttpUrl url = Objects.requireNonNull(HttpUrl.parse(Constants.GET_FLOOR_PATH)).newBuilder()
-                    .addQueryParameter("tie", tie.getId())
+            HttpUrl url1 = Objects.requireNonNull(HttpUrl.parse(Constants.GET_FLOOR_PATH)).newBuilder()
+                    .addQueryParameter("tie", tie_id)
                     .addQueryParameter("account", account)
                     .addQueryParameter("condition", CONDITIONS[pos])
                     .addQueryParameter("order", floor_order)
                     .build();
 
+            HttpUrl url2 = Objects.requireNonNull(HttpUrl.parse(Constants.GET_TIE_PATH)).newBuilder()
+                    .addQueryParameter("id", tie_id)
+                    .addQueryParameter("account", account)
+                    .build();
+
             Type type_tie_list = new TypeToken<List<Floor>>() {
             }.getType();  //创建一个新类型
 
-            try {
-                floorData = new Gson().fromJson(BackstageInteractive.get(url), type_tie_list);
+            Type tie_type = new TypeToken<Tie>() {
+            }.getType();  //创建一个新类型
 
+            try {
+                floorData = new Gson().fromJson(BackstageInteractive.get(url1), type_tie_list);
+                tie = new Gson().fromJson(BackstageInteractive.get(url2), tie_type);
             } catch (Exception e) {
                 Looper.prepare();
                 Toast.makeText(this, "网络异常!", Toast.LENGTH_SHORT).show();
@@ -319,14 +324,20 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
         }
 
         ((TextView) findViewById(R.id.end_info)).setText(floorData.size() > 0 ? "暂无更多" : "偷偷告诉你，这还毛都没有T T");
+
+        //设置返回值
+        Intent intent = new Intent()
+                .putExtra("tie", tie)
+                .putExtra("position", getIntent().getIntExtra("position", -1))
+                .putExtra("account", account);
+        setResult(RESULT_OK, intent);
     }
 
     private void refreshData() {
         getData();
         waitData();
 
-        FloorAdapter adapter = new FloorAdapter(floorData, this, account, tie.getPoster_id());
-        floor_list.setAdapter(adapter);
+        initView();
     }
 
     private void setGoodBadButton() {
@@ -527,7 +538,6 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
         TextView send_bt = findViewById(R.id.send_reply_bt);
         TextView text = findViewById(R.id.input_tips);
 
-        System.out.println(reply_text.getText().toString());
         if (!reply_text.getText().toString().equals("") || imgUri != null) {
             send_bt.setTextColor(Color.parseColor("#4096FF"));
             send_bt.setEnabled(true);

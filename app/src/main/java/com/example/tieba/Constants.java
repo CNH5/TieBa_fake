@@ -15,6 +15,7 @@ public class Constants {
     public static String SAVE_IMAGE_PATH = SERVER_URL + "/save/image";
     public static String SIGN_IN_PATH = SERVER_URL + "/sign";
     public static String SUBSCRIPTION_BA_PATH = SERVER_URL + "/subscription/ba";
+    public static String GET_TIE_LIST_PATH = SERVER_URL + "/get/tie/list";
     public static String GET_TIE_PATH = SERVER_URL + "/get/tie";
     public static String APPEND_TIE_PATH = SERVER_URL + "/append/tie";
     public static String REPLY_TIE_PATH = SERVER_URL + "/reply/tie";

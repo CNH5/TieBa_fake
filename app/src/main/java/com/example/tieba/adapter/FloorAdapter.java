@@ -152,11 +152,7 @@ public class FloorAdapter extends RecyclerView.Adapter<FloorAdapter.ViewHolder> 
 
         //TODO: 把这玩意变圆...
         //加载发帖用户的头像
-        if (floor.getPoster_avatar() == null) {
-            holder.avatar.setImageResource(R.mipmap.null_user_avatar);
-        } else {
-            Glide.with(mContext).load(Constants.GET_IMAGE_PATH + floor.getPoster_avatar()).into(holder.avatar);
-        }
+        Glide.with(mContext).load(Constants.GET_IMAGE_PATH + floor.getPoster_avatar()).into(holder.avatar);
 
         setLike_Bad_bt(holder, floor);
         set_reply_num(holder, floor);

@@ -241,4 +241,24 @@ public class Tie implements Serializable {
     public int getBadIcon() {
         return "false".equals(liked) ? R.mipmap.bad_fill : R.mipmap.bad;
     }
+
+    @Override
+    public String toString() {
+        return "Tie{" +
+                "id='" + id + '\'' +
+                ", date='" + date + '\'' +
+                ", title='" + title + '\'' +
+                ", info='" + info + '\'' +
+                ", good=" + good +
+                ", bad=" + bad +
+                ", reply_count=" + reply_count +
+                ", poster_id='" + poster_id + '\'' +
+                ", poster_name='" + poster_name + '\'' +
+                ", poster_avatar='" + poster_avatar + '\'' +
+                ", poster_exp='" + poster_exp + '\'' +
+                ", liked='" + liked + '\'' +
+                ", img='" + img + '\'' +
+                ", ba_name='" + ba_name + '\'' +
+                '}';
+    }
 }

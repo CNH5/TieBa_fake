@@ -75,6 +75,7 @@ public class UserInfoActivity extends AppCompatActivity implements View.OnClickL
         }
 
         ((TextView) findViewById(R.id.sex)).setText(user.getSex());
+        ((TextView) findViewById(R.id.end_text)).setText("暂无更多");
 
         ImageView avatar = findViewById(R.id.avatar);
         avatar.setOnClickListener(this);
