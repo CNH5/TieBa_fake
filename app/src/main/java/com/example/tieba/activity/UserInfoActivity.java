@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class UserInfoActivity extends AppCompatActivity implements View.OnClickListener {
+    public static final int CODE = 10;
     private String account;
     private String target;
     private List<Tie> historyTieList;
@@ -64,11 +65,12 @@ public class UserInfoActivity extends AppCompatActivity implements View.OnClickL
 
         findViewById(R.id.back).setOnClickListener(this);
 
-        if (account.equals(target)) {
+        if (account != null && account.equals(target)) {
             ((TextView) findViewById(R.id.topic)).setText("我的主页");
             bt1.setText("编辑资料");
             community_bt.setVisibility(View.GONE);
             more_bt.setVisibility(View.GONE);
+
         } else {
             ((TextView) findViewById(R.id.topic)).setText("TA的主页");
             bt1.setText("+ 关注");
@@ -90,7 +92,7 @@ public class UserInfoActivity extends AppCompatActivity implements View.OnClickL
     private void initParams() {
         account = getIntent().getStringExtra("account");
         target = getIntent().getStringExtra("target");
-        if (account == null || target == null) {
+        if (target == null) {
             finish();
         } else {
             getUser();
@@ -132,7 +134,7 @@ public class UserInfoActivity extends AppCompatActivity implements View.OnClickL
     private void getUser() {
         t1 = new Thread(() -> {
             HttpUrl url = Objects.requireNonNull(HttpUrl.parse(Constants.GET_USER_INFO_PATH)).newBuilder()
-                    .addQueryParameter("account", target)
+                    .addQueryParameter("target", target)
                     .build();
 
             Type user_type = new TypeToken<User>() {
@@ -194,23 +196,31 @@ public class UserInfoActivity extends AppCompatActivity implements View.OnClickL
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode) {
-            case TieActivity.CODE:
-                if (resultCode == RESULT_OK) {
-                    assert data != null;
+        if (resultCode == RESULT_OK) {
+            assert data != null;
+            if (data.getStringExtra("account") != null && account == null) {
+                account = data.getStringExtra("account");
+
+                Intent intent = new Intent().putExtra("account", account);
+                setResult(RESULT_OK, intent);
+            }
+            switch (requestCode) {
+                case TieActivity.CODE:
                     Tie tie = (Tie) data.getSerializableExtra("tie");
                     int position = data.getIntExtra("position", -1);
                     adapter.changeItem(position, tie);
-                }
-                break;
-            case LoginActivity.CODE:
-                refreshData();
-                break;
-            case ChangeUserInfoActivity.CODE:
-                if (resultCode == RESULT_OK) {
+
+                    break;
+                case LoginActivity.CODE:
+                    Toast.makeText(this, "登录成功!", Toast.LENGTH_SHORT).show();
                     refreshData();
-                }
-                break;
+
+                    break;
+                case ChangeUserInfoActivity.CODE:
+                    refreshData();
+
+                    break;
+            }
         }
     }
 
@@ -231,10 +241,11 @@ public class UserInfoActivity extends AppCompatActivity implements View.OnClickL
                     .start();
 
         } else if (vid == R.id.bt1) {
-            if (account.equals(target)) {
+            if (account != null && account.equals(target)) {
                 Intent intent = new Intent(this, ChangeUserInfoActivity.class);
                 intent.putExtra("user", user);
                 startActivityForResult(intent, ChangeUserInfoActivity.CODE);
+
             } else {
                 Toast.makeText(this, "暂未实现!", Toast.LENGTH_SHORT).show();
             }

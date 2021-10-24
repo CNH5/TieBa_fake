@@ -95,24 +95,27 @@ public class Floor implements Serializable {
             e.printStackTrace();
         }
 
-        assert d != null;
         Date now = new Date();
-        if (d.getYear() < now.getYear()) {
-            return date.substring(0, 10);
 
-        } else if (d.getDate() < now.getDate() || d.getMonth() < now.getMonth()) {
+        assert d != null;
+
+        //时区不对，手动加八小时
+        long t = now.getTime() - d.getTime() + 8 * 1000 * 60 * 60;
+        if (t < (1000 * 60)) {
+            int s = now.getSeconds() - d.getSeconds();
+            return s > 0 ? s + "秒前" : "刚刚";
+
+        } else if (t < (1000 * 60 * 60)) {
+            return ((int) t / (1000 * 60)) + "分钟前";
+
+        } else if (t < (1000 * 24 * 60 * 60)) {
+            return ((int) t / (1000 * 60 * 60)) + "小时前";
+
+        } else if (d.getMonth() < now.getMonth() && d.getYear() == now.getYear()) {
             return date.substring(5, 10);
 
-        } else if (d.getHours() < now.getHours()) {
-            return (now.getHours() - d.getHours()) + "小时前";
-
-        } else if (d.getMinutes() < now.getMinutes()) {
-            return (now.getMinutes() - d.getMinutes()) + "分钟前";
-
         } else {
-            int s = now.getSeconds() - d.getSeconds();
-            return (s > 0) ? s + "秒前" : "刚刚";
-
+            return date.substring(0, 10);
         }
     }
 

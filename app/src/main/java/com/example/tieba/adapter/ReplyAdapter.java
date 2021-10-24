@@ -76,7 +76,7 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.ViewHolder> 
             //传递账号，到那边再查询
             intent.putExtra("target", list.get((int) v.getTag()).getPoster_id());
             intent.putExtra("account", account);
-            mContext.startActivity(intent);
+            ((Activity) mContext).startActivityForResult(intent, UserInfoActivity.CODE);
 
         } else if (vid == R.id.floor_image) {
             // TODO: 点击图片后应当进入全屏浏览状态

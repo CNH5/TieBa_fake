@@ -132,7 +132,7 @@ public class TieAdapter extends RecyclerView.Adapter<TieAdapter.ViewHolder> impl
             //传递账号，到那边再查询
             intent.putExtra("target", tieList.get((int) v.getTag()).getPoster_id());
             intent.putExtra("account", account);
-            mContext.startActivity(intent);
+            ((Activity) mContext).startActivityForResult(intent, UserInfoActivity.CODE);
 
         } else if (vid == R.id.image) {
             // TODO: 点击图片后应当进入全屏浏览状态

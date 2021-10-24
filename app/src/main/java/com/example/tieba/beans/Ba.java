@@ -27,6 +27,9 @@ public class Ba implements Serializable {
     @SerializedName("signed")
     private boolean signed;
 
+    @SerializedName("subscription")
+    private boolean subscription;
+
     private Level level;
 
     public String getId() {
@@ -39,6 +42,14 @@ public class Ba implements Serializable {
 
     public String getName() {
         return name;
+    }
+
+    public boolean isSubscription() {
+        return subscription;
+    }
+
+    public void setSubscription(boolean subscription) {
+        this.subscription = subscription;
     }
 
     public void setName(String name) {

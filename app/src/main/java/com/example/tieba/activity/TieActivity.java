@@ -56,6 +56,7 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
     private static final String[] TAB_NAMES = new String[]{"全部回复", "只看楼主"};
     private static final String[] ITEMS = {"热门排序", "正序排序", "倒序排序"};
     private static final String[] CONDITIONS = {"all", "only_tie_poster"};
+    private HeightProvider provider;
     private String floor_order = "floor";  //楼层的排列顺序
     private int pos = 0;  //筛选条件，只看楼主和全部
     private String tie_id;
@@ -64,7 +65,6 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
     private Thread t;
     private Uri imgUri;
     private List<Floor> floorData;
-    private RecyclerView floor_list;
     private ImageTextButton1 good_bt;
     private ImageTextButton1 bad_bt;
     private EditText reply_text;
@@ -96,7 +96,8 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
         reply_tie_bt = findViewById(R.id.reply_tie_bt);
         reply_tie_bt.setOnClickListener(this);
 
-        new HeightProvider(this).setHeightListener(height -> reply_view.setTranslationY(-height)).init();
+        provider = new HeightProvider(this).setHeightListener(height -> reply_view.setTranslationY(-height));
+        provider.init();
 
         good_bt = findViewById(R.id.good_bt);
         bad_bt = findViewById(R.id.bad_bt);
@@ -274,7 +275,7 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
 
         setGoodBadButton();
 
-        floor_list = findViewById(R.id.floor_list);
+        RecyclerView floor_list = findViewById(R.id.floor_list);
         floor_list.setLayoutManager(new LinearLayoutManager(this));
 
         //TODO:表情框还没弄
@@ -506,6 +507,7 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
                 }
                 break;
             case LoginActivity.CODE:
+            case UserInfoActivity.CODE:
                 if (resultCode == RESULT_OK) {
                     assert data != null;
                     account = data.getStringExtra("account");
@@ -555,5 +557,14 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
     @Override
     public void afterTextChanged(Editable s) {
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        //防止内存泄露
+        if (provider != null) {
+            provider.dismiss();
+        }
     }
 }

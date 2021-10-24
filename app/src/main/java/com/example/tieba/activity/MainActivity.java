@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         SharedPreferences spFile = getSharedPreferences(spFileName, MODE_PRIVATE);
 
         was_login = spFile.getBoolean(wasLoginKey, false);
-//        was_login = false;  //每次打开都要重新登录，注释掉就不用，但是没法退出登录
+        was_login = false;  //每次打开都要重新登录，注释掉就不用，但是没法退出登录
         account = was_login ? spFile.getString(accountKey, null) : null;
 
         SwipeRefreshLayout swipe = findViewById(R.id.swipe);
@@ -124,19 +124,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Glide.with(this).load(Constants.GET_IMAGE_PATH + ba.getAvatar())
                 .into((ImageView) findViewById(R.id.ba_avatar));
         ((TextView) findViewById(R.id.ba_name)).setText(ba.getName() + "吧");
+        sign_in_bt.setVisibility(View.VISIBLE);
 
-
-        if (was_login && ba.getExp() != null) {
+        if (was_login && ba.isSubscription()) {
             //获取经验
-
             ProgressBar exp_progress = findViewById(R.id.exp_progress);
-            sign_in_bt.setVisibility(View.VISIBLE);
 
             if (ba.isSigned()) {
                 sign_in_bt.setText("已签到");
                 sign_in_bt.setTextColor(Color.parseColor("#909399"));
                 sign_in_bt.setBackgroundColor(Color.WHITE);
                 sign_in_bt.setEnabled(false);
+
+            } else {
+                sign_in_bt.setText("签到");
+                sign_in_bt.setTextColor(Color.parseColor("#FFFFFF"));
+                sign_in_bt.setBackgroundResource(R.drawable.shape_corner5);
+                sign_in_bt.setEnabled(true);
             }
 
             ((TextView) findViewById(R.id.level_name)).setText(ba.getLevel());
@@ -147,10 +151,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } else {
             ((TextView) findViewById(R.id.level_name)).setText("关注 119.3W\t\t\t帖子 1.9KW");
 
-            if (was_login) {
-                sign_in_bt.setVisibility(View.VISIBLE);
-                sign_in_bt.setText("+ 关注");
-            }
+            sign_in_bt.setText("+ 关注");
         }
     }
 
@@ -337,7 +338,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
-            case TieActivity.CODE: //点击帖子后返回,应当更新在里面的点赞状态
+            case SendTieActivity.CODE: //点击发帖后返回，应该根据情况添加一条帖子,或者说刷新页面？
+                if (resultCode == RESULT_OK) {
+                    tie_list.refreshData();
+                }
+                break;
+            case LoginActivity.CODE: //从登录界面退出来，刷新顶部的经验条什么的,顺带刷新帖子列表
+                if (resultCode == RESULT_OK) {
+                    assert data != null;
+
+                    account = data.getStringExtra("account");
+                    Toast.makeText(this, "登录成功!", Toast.LENGTH_SHORT).show();
+                    was_login = true;
+
+                    initBaInfo();
+
+                    tie_list.setAccount(account);
+                    tie_list.refreshData();
+                }
+                break;
+            default: {
                 if (resultCode == RESULT_OK) {
                     assert data != null;
                     if (account == null && data.getStringExtra("account") != null) {
@@ -348,35 +368,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         tie_list.setAccount(account);
                         tie_list.refreshData();
 
-                    } else {
+                    } else if (requestCode == TieActivity.CODE) {
+                        //点击帖子后返回,应当更新在里面的点赞状态
                         Tie tie = (Tie) data.getSerializableExtra("tie");
                         int position = data.getIntExtra("position", -1);
                         tie_list.changeListItem(position, tie);
                     }
-                    System.out.println(was_login);
                 }
-                break;
-            case SendTieActivity.CODE: //点击发帖后返回，应该根据情况添加一条帖子,或者说刷新页面？
-                if (resultCode == RESULT_OK) {
-                    tie_list.refreshData();
-                }
-                break;
-            case LoginActivity.CODE: //从登录界面退出来，刷新顶部的经验条什么的,顺带刷新帖子列表？
-                if (resultCode == RESULT_OK) {
-                    assert data != null;
-
-                    account = data.getStringExtra("account");
-                    Toast.makeText(this, "登录成功!", Toast.LENGTH_SHORT).show();
-                    was_login = true;
-
-                    System.out.println(account);
-                    initBaInfo();
-
-                    tie_list.setAccount(account);
-                    tie_list.refreshData();
-                }
-                break;
-            default: {
+                System.out.println("login status:" + was_login);
             }
         }
     }

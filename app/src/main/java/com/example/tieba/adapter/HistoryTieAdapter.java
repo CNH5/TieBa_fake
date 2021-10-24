@@ -67,7 +67,6 @@ public class HistoryTieAdapter extends RecyclerView.Adapter<HistoryTieAdapter.Vi
                 BackstageInteractive.sendLike(account, tie.getId(), tie.getLiked(), Constants.TIE);
             }
 
-
         } else if (v.getId() == R.id.bad_bt) {
             if (account == null) {
                 Intent intent = new Intent(mContext, LoginActivity.class);
@@ -84,7 +83,7 @@ public class HistoryTieAdapter extends RecyclerView.Adapter<HistoryTieAdapter.Vi
 
         } else {
             Intent intent = new Intent(mContext, TieActivity.class);
-            intent.putExtra("tie", tieList.get((int) v.getTag()));
+            intent.putExtra("tie_id", tieList.get((int) v.getTag()).getId());
             intent.putExtra("account", account);
             intent.putExtra("position", (int) v.getTag());
             ((Activity) mContext).startActivityForResult(intent, TieActivity.CODE);
