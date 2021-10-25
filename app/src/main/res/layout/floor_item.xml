@@ -23,8 +23,7 @@
                 android:paddingTop="1dp"
                 android:paddingLeft="1dp"
                 android:paddingBottom="1dp"
-                tools:ignore="ContentDescription"
-                android:src="@mipmap/null_user_avatar" />
+                tools:ignore="ContentDescription"/>
 
         <TextView
                 android:id="@+id/name"

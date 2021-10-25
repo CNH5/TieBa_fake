@@ -224,11 +224,7 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
 
         ImageView avatar = findViewById(R.id.avatar);
 
-        if (tie.getPoster_avatar() == null) {
-            avatar.setImageResource(R.mipmap.null_user_avatar);
-        } else {
-            Glide.with(this).load(Constants.GET_IMAGE_PATH + tie.getPoster_avatar()).into(avatar);
-        }
+        Glide.with(this).load(Constants.GET_IMAGE_PATH + tie.getPoster_avatar()).into(avatar);
 
         if (tie.getImg() != null) {
             ImageView tie_img = findViewById(R.id.tie_image);
@@ -450,7 +446,13 @@ public class TieActivity extends AppCompatActivity implements View.OnClickListen
             refreshData();
 
         } else if (vid == R.id.send_reply_bt) {
-            sendFloor();
+            if (account == null){
+                Intent intent = new Intent(this, LoginActivity.class);
+                startActivityForResult(intent, LoginActivity.CODE);
+
+            } else {
+                sendFloor();
+            }
 
         } else if (vid == R.id.reply_image) {
             //跳转到获取图片的activity

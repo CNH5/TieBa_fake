@@ -60,6 +60,7 @@ public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickLi
     private final Floor floor;
     private final String tie_poster_id;
     private final String account;
+    private HeightProvider provider;
 
     @SuppressLint("InflateParams")
     public ReplyFloorPopupWindow(@NonNull Context context, Floor floor, String tie_poster_id, String account) {
@@ -184,10 +185,11 @@ public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickLi
         reply_text.addTextChangedListener(this);
         reply_view = v.findViewById(R.id.reply_view);
 
-        new HeightProvider((Activity) mContext).setHeightListener(height -> {
+        provider = new HeightProvider((Activity) mContext).setHeightListener(height -> {
             float h = height == 0 ? 0 : mContext.getResources().getDisplayMetrics().heightPixels * 0.08f;
             reply_view.setTranslationY(-height + h);
-        }).init();
+        });
+        provider.init();
 
         v.findViewById(R.id.scroll_item).setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
             if (scrollY != oldScrollY) {
@@ -215,11 +217,7 @@ public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickLi
 
         ImageView avatar = v.findViewById(R.id.avatar);
         avatar.setOnClickListener(this);
-        if (floor.getPoster_avatar() == null) {
-            avatar.setImageResource(R.mipmap.null_user_avatar);
-        } else {
-            Glide.with(mContext).load(Constants.GET_IMAGE_PATH + floor.getPoster_avatar()).into(avatar);
-        }
+        Glide.with(mContext).load(Constants.GET_IMAGE_PATH + floor.getPoster_avatar()).into(avatar);
 
         end_text = v.findViewById(R.id.end_text);
         end_text.setOnClickListener(this);
@@ -359,7 +357,7 @@ public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickLi
             ((TextView) v.findViewById(R.id.reply_count)).setText(String.format("%d条回复", floor.getReply_count()));
             reply_text.setText("");
             reply_text.clearFocus();
-            
+
             if (inputManager.isActive()) {
                 inputManager.hideSoftInputFromWindow(reply_text.getWindowToken(), 0);
             }
@@ -409,7 +407,6 @@ public class ReplyFloorPopupWindow extends PopupWindow implements View.OnClickLi
         WindowManager.LayoutParams lp = ((Activity) mContext).getWindow().getAttributes();
         lp.alpha = 1.0f;
         ((Activity) mContext).getWindow().setAttributes(lp);
+        provider.dismiss();
     }
-
-
 }

@@ -99,13 +99,8 @@ public class ChangeUserInfoActivity extends AppCompatActivity implements View.On
         ((TextView) findViewById(R.id.account)).setText(user.getAccount());
 
         ImageView avatar = findViewById(R.id.avatar);
-        if (user.getAvatar() == null) {
-            avatar.setImageResource(R.mipmap.null_user_avatar);
 
-        } else {
-            Glide.with(this).load(Constants.GET_IMAGE_PATH + user.getAvatar()).into(avatar);
-
-        }
+        Glide.with(this).load(Constants.GET_IMAGE_PATH + user.getAvatar()).into(avatar);
     }
 
     @Override

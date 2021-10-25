@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         SharedPreferences spFile = getSharedPreferences(spFileName, MODE_PRIVATE);
 
         was_login = spFile.getBoolean(wasLoginKey, false);
-        was_login = false;  //每次打开都要重新登录，注释掉就不用，但是没法退出登录
+        was_login = false;  //注释掉每次打开就不用重新登录，但是没法退出登录
         account = was_login ? spFile.getString(accountKey, null) : null;
 
         SwipeRefreshLayout swipe = findViewById(R.id.swipe);
@@ -102,6 +102,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 tab_view2.setVisibility(View.VISIBLE);
                 tab_view1.setVisibility(View.GONE);
                 findViewById(R.id.top_bar).setEnabled(true);
+
             } else {
                 //悬浮的切换框不显示
                 findViewById(R.id.top_bar).setEnabled(false);
@@ -125,11 +126,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .into((ImageView) findViewById(R.id.ba_avatar));
         ((TextView) findViewById(R.id.ba_name)).setText(ba.getName() + "吧");
         sign_in_bt.setVisibility(View.VISIBLE);
+        //获取经验
+        ProgressBar exp_progress = findViewById(R.id.exp_progress);
 
         if (was_login && ba.isSubscription()) {
-            //获取经验
-            ProgressBar exp_progress = findViewById(R.id.exp_progress);
-
             if (ba.isSigned()) {
                 sign_in_bt.setText("已签到");
                 sign_in_bt.setTextColor(Color.parseColor("#909399"));
@@ -150,8 +150,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         } else {
             ((TextView) findViewById(R.id.level_name)).setText("关注 119.3W\t\t\t帖子 1.9KW");
-
             sign_in_bt.setText("+ 关注");
+            exp_progress.setVisibility(View.GONE);
         }
     }
 
@@ -244,12 +244,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startActivityForResult(intent, was_login ? SendTieActivity.CODE : LoginActivity.CODE);
 
         } else if (vid == R.id.sign_in_bt) {
-            if (ba.getExp() == null) {
-                //经验为空，则应当先关注
-                subscriptionBa();
-            } else {
-                //经验不为空，则签到
+            if (!was_login) {
+                //没有登录
+                Intent intent = new Intent(this, LoginActivity.class);
+                intent.putExtra(ACCOUNT_VALUE, account);
+                startActivityForResult(intent, LoginActivity.CODE);
+
+            } else if (ba.isSubscription()) {
+                //已经关注吧，则签到
                 signIn();
+
+            } else {
+                //没有关注吧，则应当先关注，再更新吧信息
+                subscriptionBa();
+                initBaInfo();
             }
         } else if (vid == R.id.level_name || vid == R.id.exp_progress) {
             //显示经验进度
@@ -302,7 +310,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //签到
     private void signIn() {
         final String[] result = {null};
-
         Thread thread = new Thread(() -> {
             MultipartBody.Builder builder = new MultipartBody.Builder()
                     .setType(MultipartBody.FORM)
@@ -375,7 +382,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         tie_list.changeListItem(position, tie);
                     }
                 }
-                System.out.println("login status:" + was_login);
             }
         }
     }

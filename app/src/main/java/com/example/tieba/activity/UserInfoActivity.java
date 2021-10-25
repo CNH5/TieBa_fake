@@ -82,11 +82,7 @@ public class UserInfoActivity extends AppCompatActivity implements View.OnClickL
         ImageView avatar = findViewById(R.id.avatar);
         avatar.setOnClickListener(this);
 
-        if (user.getAvatar() == null) {
-            avatar.setImageResource(R.mipmap.null_user_avatar);
-        } else {
-            Glide.with(this).load(Constants.GET_IMAGE_PATH + user.getAvatar()).into(avatar);
-        }
+        Glide.with(this).load(Constants.GET_IMAGE_PATH + user.getAvatar()).into(avatar);
     }
 
     private void initParams() {
